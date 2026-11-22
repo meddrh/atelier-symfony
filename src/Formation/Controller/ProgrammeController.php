@@ -22,21 +22,8 @@ final class ProgrammeController extends AbstractController
         $couvertes = $this->parcours->lignesCouvertes();
 
         // Sections dans l'ordre du programme ; la couverture découle des blocs faits, elle ne se coche pas.
-        $sections = [];
-        foreach ($this->catalogue->programme() as $ligne) {
-            $sections[$ligne->sectionId] ??= [
-                'titre' => $ligne->section,
-                'horsProgramme' => $ligne->horsProgramme,
-                'lignes' => [],
-                'couvertes' => 0,
-            ];
-            $couverte = $couvertes[$ligne->id] ?? false;
-            $sections[$ligne->sectionId]['lignes'][] = ['libelle' => $ligne->libelle, 'couverte' => $couverte];
-            $couverte && ++$sections[$ligne->sectionId]['couvertes'];
-        }
-
         return $this->render('programme.html.twig', [
-            'sections' => array_values($sections),
+            'sections' => $this->catalogue->sectionsDuProgramme($couvertes),
             'nbCouvertes' => \count(array_filter($couvertes)),
             'nbLignes' => \count($couvertes),
         ]);

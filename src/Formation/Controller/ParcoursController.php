@@ -25,18 +25,7 @@ final class ParcoursController extends AbstractController
         $statuts = $this->parcours->statuts();
         $groupes = [];
         foreach ($this->catalogue->niveaux() as $niveau) {
-            // Blocs consécutifs d'un même sujet ; les rappels et lectures (sans sujet) forment leur propre groupe.
-            $courants = [];
-            foreach ($niveau->blocs as $bloc) {
-                $sujet = $this->catalogue->sujetDuBloc($bloc->id);
-                $dernier = array_key_last($courants);
-                if (null !== $dernier && $courants[$dernier]['sujet']?->id === $sujet?->id) {
-                    $courants[$dernier]['blocs'][] = $bloc;
-                } else {
-                    $courants[] = ['sujet' => $sujet, 'blocs' => [$bloc]];
-                }
-            }
-            $groupes[$niveau->id] = array_map(fn (array $groupe) => $this->decrire($groupe['sujet'], $groupe['blocs'], $statuts), $courants);
+            $groupes[$niveau->id] = array_map(fn (array $groupe) => $this->decrire($groupe['sujet'], $groupe['blocs'], $statuts), $this->catalogue->groupesDuNiveau($niveau));
         }
 
         return $this->render('parcours.html.twig', [

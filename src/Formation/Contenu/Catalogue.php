@@ -81,6 +81,73 @@ final class Catalogue
         return $this->programme;
     }
 
+    /**
+     * Les blocs consécutifs d'un même sujet d'un niveau ; les rappels et lectures (sans sujet) forment leur propre groupe.
+     * C'est le découpage de la page « Parcours », partagé avec l'export statique.
+     *
+     * @return list<array{sujet: ?Sujet, blocs: list<Bloc>}>
+     */
+    public function groupesDuNiveau(Niveau $niveau): array
+    {
+        $groupes = [];
+        foreach ($niveau->blocs as $bloc) {
+            $sujet = $this->sujetDuBloc($bloc->id);
+            $dernier = array_key_last($groupes);
+            if (null !== $dernier && $groupes[$dernier]['sujet']?->id === $sujet?->id) {
+                $groupes[$dernier]['blocs'][] = $bloc;
+            } else {
+                $groupes[] = ['sujet' => $sujet, 'blocs' => [$bloc]];
+            }
+        }
+
+        return $groupes;
+    }
+
+    /**
+     * Un badge par sujet (quand il en a un), puis le badge du niveau, dans l'ordre du parcours.
+     *
+     * @return list<array{badge: Badge, contexte: string}>
+     */
+    public function cartesDeBadges(): array
+    {
+        $cartes = [];
+        foreach ($this->niveaux as $niveau) {
+            foreach ($niveau->sujets as $sujet) {
+                if (null !== $sujet->badge) {
+                    $cartes[] = ['badge' => $sujet->badge, 'contexte' => sprintf('Sujet %d · %s', $sujet->numero, $sujet->titre)];
+                }
+            }
+            $cartes[] = ['badge' => $niveau->badgeNiveau, 'contexte' => sprintf('Niveau %s', $niveau->nom)];
+        }
+
+        return $cartes;
+    }
+
+    /**
+     * Les lignes du programme regroupées par section, dans l'ordre du programme.
+     *
+     * @param array<string, bool> $couvertes ligne couverte, par identifiant de ligne (vide : rien n'est couvert)
+     *
+     * @return list<array{titre: string, horsProgramme: bool, lignes: list<array{libelle: string, couverte: bool}>, couvertes: int}>
+     */
+    public function sectionsDuProgramme(array $couvertes = []): array
+    {
+        $sections = [];
+        foreach ($this->programme as $ligne) {
+            $sections[$ligne->sectionId] ??= [
+                'titre' => $ligne->section,
+                'horsProgramme' => $ligne->horsProgramme,
+                'lignes' => [],
+                'couvertes' => 0,
+            ];
+            $couverte = $couvertes[$ligne->id] ?? false;
+            $sections[$ligne->sectionId]['lignes'][] = ['libelle' => $ligne->libelle, 'couverte' => $couverte];
+            $couverte && ++$sections[$ligne->sectionId]['couvertes'];
+        }
+
+        return array_values($sections);
+    }
+
     /** Markdown brut du bloc. */
     public function contenuDuBloc(string $blocId): string
     {

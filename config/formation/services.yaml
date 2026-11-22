@@ -30,6 +30,10 @@ services:
         arguments:
             $cheminBase: '%env(resolve:FORMATION_DB)%'
 
+    App\Formation\Export\SiteExporteur:
+        arguments:
+            $dossierProjet: '%kernel.project_dir%'
+
     App\Formation\Exercice\LanceurTests:
         arguments:
             $dossierProjet: '%kernel.project_dir%'

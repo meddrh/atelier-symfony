@@ -5,19 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Atelier Symfony{% endblock %}</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="{{ asset('atelier/atelier.css') }}">
+    {% if export %}<meta name="robots" content="noindex, nofollow">{% endif %}
+    {# Export statique (« export » vrai) : pages à plat, feuille de style à côté, liens relatifs (cf. src/Formation/Export/). #}
+    <link rel="stylesheet" href="{{ export ? 'atelier/atelier.css' : asset('atelier/atelier.css') }}">
 </head>
 <body>
-{% set route = app.request.attributes.get('_route') %}
+{% if export %}
+    <p class="bandeau" role="note">Version de lecture : pour valider un exercice, lance <code>bin/exercice test</code> dans ton projet. Les boutons « Terminé » et les formulaires dont parlent les pages n'existent que sur la plateforme installée chez toi.</p>
+{% endif %}
+{% set route = export ? page_courante : app.request.attributes.get('_route') %}
 <header class="barre">
     <div class="barre__contenu">
-        <a class="marque" href="{{ path('formation_seance') }}">Atelier Symfony</a>
+        <a class="marque" href="{{ lien('formation_seance', {}, export) }}">Atelier Symfony</a>
         <nav class="liens" aria-label="Navigation principale">
-            <a href="{{ path('formation_seance') }}"{% if route == 'formation_seance' %} aria-current="page"{% endif %}>Séance du jour</a>
-            <a href="{{ path('formation_parcours') }}"{% if route == 'formation_parcours' %} aria-current="page"{% endif %}>Parcours</a>
-            <a href="{{ path('formation_badges') }}"{% if route == 'formation_badges' %} aria-current="page"{% endif %}>Badges</a>
-            <a href="{{ path('formation_programme') }}"{% if route == 'formation_programme' %} aria-current="page"{% endif %}>Programme</a>
+            {% if not export %}<a href="{{ lien('formation_seance') }}"{% if route == 'formation_seance' %} aria-current="page"{% endif %}>Séance du jour</a>{% endif %}
+            <a href="{{ lien('formation_parcours', {}, export) }}"{% if route == 'formation_parcours' %} aria-current="page"{% endif %}>Parcours</a>
+            <a href="{{ lien('formation_badges', {}, export) }}"{% if route == 'formation_badges' %} aria-current="page"{% endif %}>Badges</a>
+            <a href="{{ lien('formation_programme', {}, export) }}"{% if route == 'formation_programme' %} aria-current="page"{% endif %}>Programme</a>
         </nav>
+        {% if not export %}
         <details class="duree">
             <summary aria-label="Durée de la séance : {{ duree_seance() }} minutes. Modifier">⏱ {{ duree_seance() }} min</summary>
             <form class="duree__menu" method="post" action="{{ path('formation_duree') }}">
@@ -30,14 +36,17 @@
                 </div>
             </form>
         </details>
+        {% endif %}
     </div>
 </header>
 <main class="page{% block classe_page %}{% endblock %}">
-    {% for type, messages in app.flashes %}
-        {% for message in messages %}
-            <p class="message message--{{ type }}" role="status">{{ message }}</p>
+    {% if not export %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <p class="message message--{{ type }}" role="status">{{ message }}</p>
+            {% endfor %}
         {% endfor %}
-    {% endfor %}
+    {% endif %}
     {% block contenu %}{% endblock %}
 </main>
 </body>

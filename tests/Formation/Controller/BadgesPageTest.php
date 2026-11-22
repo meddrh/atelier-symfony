@@ -31,6 +31,16 @@ class BadgesPageTest extends PlateformeWebTestCase
         self::assertStringContainsString('Niveau Débutant', $crawler->filter('body')->text());
     }
 
+    public function testLaPlateformeLocaleNEstPasMiseEnNonIndexe(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/formation/badges');
+
+        self::assertResponseIsSuccessful();
+        self::assertCount(0, $crawler->filter('meta[name=robots]'));
+        self::assertCount(0, $crawler->filter('.bandeau'));
+    }
+
     public function testAucunBadgeAuDepart(): void
     {
         $client = static::createClient();

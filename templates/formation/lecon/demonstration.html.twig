@@ -7,13 +7,13 @@
 
     <nav class="etapes" aria-label="Étapes de la démonstration">
         {% if etape > 1 %}
-            <a class="bouton bouton--contour" href="{{ path('formation_lecon', {blocId: bloc.id, etape: etape - 1}|merge(parametresReste)) }}">Étape précédente</a>
+            <a class="bouton bouton--contour" href="{{ lien('formation_lecon', {blocId: bloc.id, etape: etape - 1}|merge(parametresReste), export) }}">Étape précédente</a>
         {% else %}
             <span></span>
         {% endif %}
         <span class="etapes__position">Étape {{ etape }} sur {{ etapes|length }}</span>
         {% if etape < etapes|length %}
-            <a class="bouton bouton--sombre" href="{{ path('formation_lecon', {blocId: bloc.id, etape: etape + 1}|merge(parametresReste)) }}">Étape suivante</a>
+            <a class="bouton bouton--sombre" href="{{ lien('formation_lecon', {blocId: bloc.id, etape: etape + 1}|merge(parametresReste), export) }}">Étape suivante</a>
         {% elseif peutTerminer %}
             {{ b.terminer(bloc, reste, 'Terminé') }}
         {% elseif statut.value == 'fait' %}

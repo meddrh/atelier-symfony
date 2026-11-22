@@ -5,7 +5,20 @@
 {% block lecon_contenu %}
     <div class="prose">{{ texte|markdown_to_html }}</div>
 
-    {% if complete %}
+    {% if export %}
+        {# Export : les questions, chacune avec sa correction repliée (rien à remplir ni à envoyer). #}
+        <p class="consigne">Réponds d'abord à chaque question de ton côté, puis ouvre la correction pour comparer. Ce n'est pas noté.</p>
+        {% for champ in champs %}
+            <div class="champ">
+                <h3 class="champ__libelle">{{ champ.libelle }}</h3>
+                {% if champ.aide %}<p class="champ__aide">{{ champ.aide }}</p>{% endif %}
+                <details class="correction">
+                    <summary>Voir la correction</summary>
+                    <p>{{ champ.correction }}</p>
+                </details>
+            </div>
+        {% endfor %}
+    {% elseif complete %}
         <p class="consigne">Compare ta fiche avec la correction. Ce n'est pas noté : repère seulement ce que tu as oublié ou fait autrement, puis passe à la suite.</p>
         <div class="comparaison">
             <section class="comparaison__colonne" aria-labelledby="ta-fiche">

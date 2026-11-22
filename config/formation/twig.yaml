@@ -3,6 +3,9 @@
 # ne sont ni lus ni compilés au démarrage.
 twig:
     default_path: '%kernel.project_dir%/templates/formation'
+    # Faux sur la plateforme ; l'export statique (src/Formation/Export/) le passe à vrai dans le contexte de chaque page.
+    globals:
+        export: false
 
 when@test:
     twig:

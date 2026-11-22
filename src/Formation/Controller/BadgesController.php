@@ -25,23 +25,10 @@ final class BadgesController extends AbstractController
         }
 
         // Un badge par exercice, puis le badge du niveau.
-        $cartes = [];
-        foreach ($this->catalogue->niveaux() as $niveau) {
-            foreach ($niveau->sujets as $sujet) {
-                if (null !== $sujet->badge) {
-                    $cartes[] = [
-                        'badge' => $sujet->badge,
-                        'contexte' => sprintf('Sujet %d · %s', $sujet->numero, $sujet->titre),
-                        'obtenu' => isset($obtenus[$sujet->badge->id]),
-                    ];
-                }
-            }
-            $cartes[] = [
-                'badge' => $niveau->badgeNiveau,
-                'contexte' => sprintf('Niveau %s', $niveau->nom),
-                'obtenu' => isset($obtenus[$niveau->badgeNiveau->id]),
-            ];
-        }
+        $cartes = array_map(
+            static fn (array $carte): array => $carte + ['obtenu' => isset($obtenus[$carte['badge']->id])],
+            $this->catalogue->cartesDeBadges(),
+        );
 
         return $this->render('badges.html.twig', [
             'cartes' => $cartes,

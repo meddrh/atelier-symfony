@@ -5,20 +5,24 @@
 
 {% block contenu %}
     <h1 class="titre-page">Parcours</h1>
-    <p class="sous-titre">Les blocs s'ouvrent dans l'ordre. Un exercice est validé quand ses tests passent.</p>
+    {% if export %}
+        <p class="sous-titre">Version de lecture du parcours : les fiches, les démonstrations, les exercices et leurs squelettes, les rappels et le programme.</p>
+    {% else %}
+        <p class="sous-titre">Les blocs s'ouvrent dans l'ordre. Un exercice est validé quand ses tests passent.</p>
+    {% endif %}
 
     {% for niveau in niveaux %}
         <section class="carte carte--grande niveau" aria-labelledby="niveau-{{ niveau.id }}">
             <h2 class="niveau__titre" id="niveau-{{ niveau.id }}">{{ niveau.nom }}</h2>
             <p class="etiquette">{{ niveau.sousTitre }}</p>
             {% for groupe in groupes[niveau.id] %}
-                <details class="sujet"{% if groupe.ouvert %} open{% endif %}>
+                <details class="sujet"{% if not export and groupe.ouvert %} open{% endif %}>
                     <summary>
                         <span class="sujet__resume">{% if groupe.sujet is not null %}Sujet {{ groupe.sujet.numero }} · {{ groupe.sujet.titre }}{% else %}Rappels et lectures{% endif %}</span>
-                        <span class="etiquette">{{ groupe.faits }} / {{ groupe.blocs|length }}</span>
+                        <span class="etiquette">{% if export %}{{ groupe.blocs|length }} {{ groupe.blocs|length > 1 ? 'blocs' : 'bloc' }}{% else %}{{ groupe.faits }} / {{ groupe.blocs|length }}{% endif %}</span>
                     </summary>
                     <ul class="blocs">
-                        {% for bloc in groupe.blocs %}{{ b.ligne(bloc, statuts[bloc.id]) }}{% endfor %}
+                        {% for bloc in groupe.blocs %}{{ b.ligne(bloc, export ? null : statuts[bloc.id], false, export) }}{% endfor %}
                     </ul>
                 </details>
             {% endfor %}

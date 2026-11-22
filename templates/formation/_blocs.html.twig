@@ -23,16 +23,18 @@
     </form>
 {% endmacro %}
 
-{# Une ligne de bloc : lien si le bloc est ouvert, simple texte s'il est verrouillé. #}
-{% macro ligne(bloc, statut, actif = false) %}
+{# Une ligne de bloc : lien si le bloc est ouvert, simple texte s'il est verrouillé.
+   Export (« export » vrai, statut inutilisé) : ni état ni verrou, tous les blocs sont des liens. #}
+{% macro ligne(bloc, statut, actif = false, export = false) %}
     {% import _self as b %}
-    <li class="bloc bloc--{{ statut.value|replace({'_': '-'}) }}{% if actif %} bloc--actif{% endif %}">
+    {% set verrouille = not export and statut.value == 'verrouille' %}
+    <li class="bloc{% if not export %} bloc--{{ statut.value|replace({'_': '-'}) }}{% endif %}{% if actif %} bloc--actif{% endif %}">
         {{ b.icone(bloc.type) }}
         <span class="bloc__titre">
-            {% if statut.value == 'verrouille' %}{{ bloc.titre }}{% else %}<a href="{{ path('formation_lecon', {blocId: bloc.id}) }}">{{ bloc.titre }}</a>{% endif %}
+            {% if verrouille %}{{ bloc.titre }}{% else %}<a href="{{ lien('formation_lecon', {blocId: bloc.id}, export) }}">{{ bloc.titre }}</a>{% endif %}
             <span class="bloc__type">{{ b.libelle(bloc.type) }}</span>
         </span>
         <span class="bloc__duree">{{ bloc.dureeMinutes }} min</span>
-        {{ b.etat(statut) }}
+        {% if export %}<span></span>{% else %}{{ b.etat(statut) }}{% endif %}
     </li>
 {% endmacro %}

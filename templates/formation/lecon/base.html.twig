@@ -8,7 +8,7 @@
         <aside class="lecon__liste" aria-label="Blocs du sujet">
             <h2>{% if sujet is not null %}Sujet {{ sujet.numero }} · {{ sujet.titre }}{% else %}Rappels et lectures{% endif %}</h2>
             <ul class="blocs">
-                {% for item in liste %}{{ b.ligne(item, statuts[item.id], item.id == bloc.id) }}{% endfor %}
+                {% for item in liste %}{{ b.ligne(item, export ? null : statuts[item.id], item.id == bloc.id, export) }}{% endfor %}
             </ul>
         </aside>
 

@@ -2,7 +2,7 @@
 
 {# Exercice : énoncé, tests attendus, terminal. Il n'a pas de bouton « Terminé » : seuls des tests verts le valident. #}
 {% block lecon_contenu %}
-    {% if statut.value == 'fait' %}
+    {% if not export and statut.value == 'fait' %}
         <p class="message validation" role="status">Exercice validé — Badge débloqué : {{ badge is not null ? badge.nom : '' }}</p>
     {% endif %}
 
@@ -16,6 +16,8 @@
     {% endif %}
 
     <p>Lance les tests depuis le terminal du conteneur : <code>docker compose exec app bin/exercice test</code></p>
+    {# Export : pas de résultat de lancement, d'aide ni d'historique (ils viennent de la progression locale). #}
+    {% if not export %}
     <div class="terminal" role="region" aria-label="Terminal">
         <div class="terminal__commande">bin/exercice test</div>
         {% if dernier is null %}
@@ -62,5 +64,6 @@
                 {% endfor %}
             </ul>
         </section>
+    {% endif %}
     {% endif %}
 {% endblock %}

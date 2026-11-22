@@ -4,13 +4,17 @@
 
 {% block contenu %}
     <h1 class="titre-page">Programme</h1>
-    <p class="sous-titre">{{ nbCouvertes }} / {{ nbLignes }} lignes couvertes. Une ligne est couverte quand un bloc qui la traite est terminé : rien à cocher.</p>
+    {% if export %}
+        <p class="sous-titre">{{ nbLignes }} lignes de programme, traitées par les blocs du parcours.</p>
+    {% else %}
+        <p class="sous-titre">{{ nbCouvertes }} / {{ nbLignes }} lignes couvertes. Une ligne est couverte quand un bloc qui la traite est terminé : rien à cocher.</p>
+    {% endif %}
 
     {% for section in sections %}
         <details class="section"{% if loop.first %} open{% endif %}>
             <summary>
                 <span class="section__titre">{{ section.titre }}</span>
-                <span class="section__compteur">{{ section.couvertes }} / {{ section.lignes|length }}</span>
+                <span class="section__compteur">{% if export %}{{ section.lignes|length }} {{ section.lignes|length > 1 ? 'lignes' : 'ligne' }}{% else %}{{ section.couvertes }} / {{ section.lignes|length }}{% endif %}</span>
             </summary>
             {% if section.horsProgramme %}
                 <p class="section__note">Notions utiles à ton travail, absentes du programme de la certification.</p>
@@ -19,7 +23,7 @@
                 {% for ligne in section.lignes %}
                     <li class="ligne{% if ligne.couverte %} ligne--couverte{% endif %}">
                         <span class="ligne__marque" aria-hidden="true">{{ ligne.couverte ? '✓' : '' }}</span>
-                        <span>{{ ligne.libelle }}<span class="sr-only"> : {{ ligne.couverte ? 'couverte' : 'pas encore couverte' }}</span></span>
+                        <span>{{ ligne.libelle }}{% if not export %}<span class="sr-only"> : {{ ligne.couverte ? 'couverte' : 'pas encore couverte' }}</span>{% endif %}</span>
                     </li>
                 {% endfor %}
             </ul>

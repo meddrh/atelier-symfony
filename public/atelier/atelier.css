@@ -333,3 +333,14 @@ dialog p { font-size: 18px; line-height: 1.38; color: var(--texte); }
     .actions .bouton { flex: 1 1 100%; text-align: center; }
     .duree__menu { right: -8px; }
 }
+
+/* ---------- Version de lecture (export statique) ---------- */
+.bandeau {
+    margin: 0; padding: 8px 24px; text-align: center; font-size: 14px;
+    color: var(--texte); background: var(--teinte); border-bottom: 1px solid var(--bordure-active);
+}
+.bandeau code { font-family: var(--chasse); font-size: 0.95em; }
+.champ__libelle { font-size: 18px; margin-bottom: 4px; }
+.correction { border: 1px solid var(--bordure); border-radius: var(--rayon-s); padding: 8px 16px; }
+.correction > summary { cursor: pointer; color: var(--texte); font-weight: 600; }
+.correction p { margin: 8px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
