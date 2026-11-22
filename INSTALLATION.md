@@ -112,8 +112,8 @@ Sur une installation neuve, tu dois voir :
 Pas d'exercice en cours. Ta séance du jour : « … ».
 ```
 
-C'est **le signe que tout fonctionne** : la plateforme répond, et ta première séance est une fiche de
-préparation, pas encore un exercice. Les tests se lanceront quand tu arriveras au premier exercice (ils seront
+C'est **le signe que tout fonctionne** : la plateforme répond, et ta première séance est une lecture
+(un rappel), pas encore un exercice. Les tests se lanceront quand tu arriveras au premier exercice (ils seront
 rouges tant que tu ne l'auras pas fait : c'est normal). Si tu vois une erreur à la place, va à « En cas de problème ».
 
 ## Au quotidien
