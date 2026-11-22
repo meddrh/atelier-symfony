@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+{% import '_blocs.html.twig' as b %}
+
+{% block title %}Séance du jour · Atelier Symfony{% endblock %}
+
+{% block contenu %}
+    <h1 class="titre-page">Bonjour 👋</h1>
+    <p class="sous-titre">Un petit pas chaque jour : voici où tu en es.</p>
+
+    <section class="carte carte--grande" aria-labelledby="seance-titre">
+        {% if seance.parcoursTermine %}
+            <div class="carte__entete"><span class="etiquette" id="seance-titre">Parcours</span></div>
+            <h2>Tout le parcours disponible est terminé.</h2>
+            <p class="etiquette">Les prochains niveaux arriveront dans un prochain lot.</p>
+            <div class="actions">
+                <a class="bouton bouton--contour" href="{{ path('formation_parcours') }}">Voir le parcours</a>
+            </div>
+        {% else %}
+            <div class="carte__entete">
+                <span class="etiquette" id="seance-titre">Aujourd'hui · {{ duree_seance() }} min</span>
+                <span class="etiquette">{{ seance.blocs|length }} {{ seance.blocs|length > 1 ? 'blocs' : 'bloc' }}</span>
+            </div>
+            {% set premier = seance.blocs|first %}
+            <h2>{{ premier.titre }}</h2>
+            {% if seance.blocs|length == 1 %}
+                <p class="etiquette">{{ b.libelle(premier.type) }} · {{ premier.dureeMinutes }} min</p>
+            {% else %}
+                <ul class="blocs">
+                    {% for bloc in seance.blocs %}
+                        <li class="bloc">
+                            {{ b.icone(bloc.type) }}
+                            <span class="bloc__titre">{{ bloc.titre }}<span class="bloc__type">{{ b.libelle(bloc.type) }}</span></span>
+                            <span class="bloc__duree">{{ bloc.dureeMinutes }} min</span>
+                            <span></span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            <div class="actions">
+                <a class="bouton bouton--sombre" href="{{ path('formation_lecon', {blocId: premier.id}) }}">{{ seance.exerciceEnCours ? "Continuer l'exercice" : 'Commencer la séance' }}</a>
+                <a class="bouton bouton--contour" href="{{ path('formation_parcours') }}">Voir le parcours</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="progression" aria-label="Progression du niveau">
+        <div class="progression__ligne">
+            <span>Niveau {{ niveau.nom }} — {{ faits }} / {{ total }} blocs</span>
+            <span>{{ pourcentage }} %</span>
+        </div>
+        <div class="progression__piste" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ pourcentage }}">
+            <div class="progression__barre" style="width: {{ pourcentage }}%"></div>
+        </div>
+    </section>
+
+    <p class="etiquette">
+        {% if dernierBadge is not null %}
+            Dernier badge obtenu : <strong>{{ dernierBadge.nom }}</strong>
+        {% else %}
+            Aucun badge obtenu pour l'instant : le premier arrive avec ton premier exercice validé.
+        {% endif %}
+    </p>
+{% endblock %}

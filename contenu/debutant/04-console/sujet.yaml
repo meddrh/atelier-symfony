@@ -1,0 +1,76 @@
+id: 04-console
+titre: Les commandes de la console
+badge:
+  id: import-reussi
+  nom: Import réussi
+  description: "Tu as écrit une commande de la console qui lit un fichier CSV, importe les lignes valides et signale les autres."
+blocs:
+  - id: s04-preparation
+    type: preparation
+    titre: "Préparer l'import des fournisseurs"
+    duree: 15
+    fichier: preparation.md
+    programme: [console.commandes-perso, console.options-arguments]
+    champs:
+      - cle: entrees
+        libelle: "Ce que la commande reçoit"
+        aide: "Quel nom donnes-tu à la commande ? Quelles valeurs l'utilisateur doit-il lui donner, et sous quelle forme est le fichier (colonnes, séparateur, en-têtes) ?"
+        correction: |
+          - Nom : `app:fournisseur:importer` (convention `espace:sujet:action`).
+          - Un **argument** obligatoire : le chemin du fichier CSV.
+          - Le fichier : trois colonnes `nom;email;telephone`, séparées par un point-virgule, avec une première ligne d'en-têtes à ne pas importer.
+      - cle: cas
+        libelle: "Cas à traiter"
+        aide: "Liste tous les cas possibles (du fichier lui-même et de chaque ligne), et ce que la commande fait ou affiche dans chacun."
+        correction: |
+          - Fichier absent ou illisible : message d'erreur, arrêt immédiat, rien d'enregistré.
+          - Fichier avec seulement l'en-tête : rien à importer, aucune erreur.
+          - Ligne valide : le fournisseur est enregistré.
+          - Ligne invalide (nom vide, e-mail invalide, e-mail déjà pris en base ou plus haut dans le fichier) : un avertissement avec le **numéro de ligne**, la ligne est ignorée, les suivantes sont traitées.
+          - Téléphone vide ou absent : enregistré comme absent.
+      - cle: validation
+        libelle: "Règles de validation"
+        aide: "Où se trouvent les règles qui disent si un fournisseur est valide ? Vas-tu les réécrire dans la commande ?"
+        correction: |
+          Non : les règles existent déjà **sur l'entité** `Fournisseur` (`#[Assert\…]` et `#[UniqueEntity]`). La commande demande au **validateur** (`ValidatorInterface`) de les appliquer à l'objet qu'elle vient de fabriquer, et reprend le premier message d'erreur. Le formulaire et l'import partagent ainsi la même définition.
+
+          Pour que l'unicité marche **à l'intérieur du fichier**, chaque ligne valide doit être enregistrée (`flush`) avant de lire la suivante.
+      - cle: retour
+        libelle: "Sortie et code de retour"
+        aide: "Que s'affiche-t-il à l'écran ? Quel code de retour dans chaque cas, et pourquoi ?"
+        correction: |
+          - Un titre, un avertissement par ligne refusée, un résumé final (nombre de lignes importées et refusées).
+          - Code **1** (`Command::FAILURE`) seulement si le fichier est inutilisable : la commande n'a rien pu faire.
+          - Code **0** (`Command::SUCCESS`) sinon, même si des lignes sont refusées : le fichier a été lu, les lignes refusées sont signalées à l'écran.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Quel fichier crées-tu ? Numérote les étapes, de la déclaration de la commande jusqu'à l'essai avec un vrai fichier."
+        correction: |
+          Fichier : `src/Command/ImporterFournisseurCommand.php` (un seul), et un fichier CSV d'essai.
+
+          1. Déclarer la commande (`#[AsCommand]`, constructeur, `configure()` avec l'argument) : elle apparaît dans `bin/console list`.
+          2. Gérer le fichier absent (message, code 1) : premier cas testable.
+          3. Lire le fichier ligne par ligne en comptant les lignes.
+          4. Fabriquer le fournisseur, le valider, signaler la ligne si elle est refusée.
+          5. Enregistrer chaque ligne valide.
+          6. Afficher le résumé, renvoyer 0.
+          7. Essayer avec un fichier contenant des lignes fausses, puis lancer les tests.
+  - id: s04-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : déclarer une commande"
+    duree: 25
+    fichier: demonstration-1.md
+    programme: [console.commandes-perso, console.commandes-integrees, console.configuration, console.options-arguments, console.entree-sortie, console.utilitaires, injection.cablage-automatique]
+  - id: s04-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : lire un fichier et signaler les erreurs"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [console.entree-sortie, console.utilitaires, console.verbosite, console.options-arguments, validation.objets, php.api]
+  - id: s04-exercice
+    type: exercice
+    titre: "Exercice : l'import des fournisseurs"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Console
+    programme: [console.commandes-perso, console.configuration, console.options-arguments, console.entree-sortie, validation.objets]

@@ -1,0 +1,6 @@
+id: lecture-architecture-avancee
+type: rappel
+titre: "Lecture : ponts vers les bibliothèques tierces, bonnes pratiques, normes PSR, nommage et configuration sémantique"
+duree: 15
+fichier: lecture-architecture-avancee.md
+programme: [architecture.bridges, architecture.bonnes-pratiques, architecture.psr, architecture.nommage, injection.configuration-semantique]

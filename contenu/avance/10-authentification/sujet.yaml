@@ -1,0 +1,68 @@
+id: 10-authentification
+titre: L'authentification
+badge:
+  id: portier
+  nom: Portier
+  description: "Tu as fermé la porte de ton application : connexion par formulaire protégée, rôles hiérarchisés, accès contrôlés et un flux JSON qui n'ouvre qu'avec le bon jeton."
+blocs:
+  - id: s10-preparation
+    type: preparation
+    titre: "Préparer les rôles, le compte et le flux par jeton"
+    duree: 15
+    fichier: preparation.md
+    programme: [securite.roles, securite.controle-acces, securite.authentificateurs]
+    champs:
+      - cle: acces
+        libelle: "Qui a le droit d'aller où"
+        aide: "Pour chaque page (tickets, utilisateurs, mon compte, matériels), écris qui peut l'ouvrir. Que voit un visiteur anonyme ? Que voit un utilisateur connecté sans le bon rôle ? Quels rôles crées-tu, et lequel contient lequel ?"
+        correction: |
+          - Trois rôles en escalier : `ROLE_TECHNICIEN` < `ROLE_GESTIONNAIRE` < `ROLE_ADMIN`, plus `ROLE_USER` que tout utilisateur possède. Chaque rôle **hérite** de celui du dessous : on l'écrit **une fois** dans la **hiérarchie des rôles**, au lieu de lister tous les rôles dans chaque règle.
+          - `/tickets` (avec ou sans langue) : `ROLE_TECHNICIEN`. `/utilisateurs` : `ROLE_ADMIN`. `/mon-compte` : `ROLE_USER`. `/materiels` : `ROLE_USER` (démonstration).
+          - Un visiteur **anonyme** est **renvoyé vers `/connexion`** : on ne sait pas qui il est. Un utilisateur **connecté sans le bon rôle** reçoit **403** : on sait qui il est, et la réponse est non.
+          - Ces règles vivent dans `access_control`, **avant** le contrôleur : un appel direct à l'adresse (même en `POST`, sans passer par le bouton) est refusé de la même façon.
+      - cle: jeton
+        libelle: "Le flux protégé par un jeton"
+        aide: "Qui appelle `/flux/mes-tickets` : un navigateur ou un programme ? Comment prouve-t-il qui il est ? Que doit répondre l'adresse quand le jeton est absent, faux ou vide ? Faut-il une session ? Où ranges-tu le jeton ?"
+        correction: |
+          - L'appelant est un **programme** : il n'a ni formulaire ni cookie. Il se présente à **chaque** requête avec un en-tête `X-Jeton`. Le pare-feu est donc **sans état** (`stateless: true`) : aucune session, aucun cookie.
+          - Le jeton se range sur `Utilisateur`, dans une colonne `jeton_api` **unique** (deux utilisateurs ne partagent pas un jeton) et **facultative** (la plupart n'en ont pas), donc `nullable`.
+          - Trois cas, **un seul code** : jeton absent, jeton inconnu, jeton vide donnent **401** avec un message JSON en français. Jamais 500 (une exception non rattrapée), jamais 200.
+          - Un pare-feu **à part** (`flux`, sur `^/flux`) : le jeton ne vaut que là. Il n'ouvre pas le reste de l'application, et la session de l'application n'ouvre pas le flux.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `config/packages/security.yaml` (modifié), `src/Controller/CompteController.php`, `templates/compte/compte.html.twig`, `src/Entity/Utilisateur.php` (modifié), une migration, `src/Repository/TicketRepository.php` (modifié), `src/Security/AuthentificateurParJeton.php`, `src/Controller/FluxController.php`, `templates/base.html.twig` et les deux catalogues (le lien « Mon compte »).
+
+          1. La hiérarchie des rôles et les règles d'accès de `/tickets`, `/utilisateurs`, `/mon-compte` (testables tout de suite avec `loginUser()`).
+          2. La page « Mon compte ».
+          3. La colonne `jeton_api` et sa migration.
+          4. La requête des tickets ouverts d'un utilisateur.
+          5. L'authentificateur par jeton, puis le pare-feu `flux`.
+          6. La route `/flux/mes-tickets`.
+          7. Lancer les tests ; essayer à la main avec `curl` : sans jeton, avec un faux jeton, avec le bon.
+  - id: s10-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : un utilisateur de sécurité et son mot de passe haché"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [securite.utilisateurs, securite.hachage, securite.fournisseurs, securite.authentification]
+  - id: s10-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : la connexion par formulaire, la déconnexion et la première règle d'accès"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [securite.configuration, securite.pare-feu, securite.authentification, securite.controle-acces, controleurs.cookies]
+  - id: s10-demo-3
+    type: demonstration
+    titre: "Démonstration, partie 3 : un authentificateur par en-tête, un pare-feu sans état et une réponse JSON"
+    duree: 40
+    fichier: demonstration-3.md
+    programme: [securite.authentificateurs, securite.roles, securite.pare-feu, securite.configuration, controleurs.reponse]
+  - id: s10-exercice
+    type: exercice
+    titre: "Exercice : rôles, « Mon compte » et flux JSON protégé par un jeton"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Authentification
+    programme: [securite.roles, securite.controle-acces, securite.authentificateurs, securite.configuration, securite.pare-feu]

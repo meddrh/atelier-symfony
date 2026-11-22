@@ -1,0 +1,68 @@
+id: 14-messages-et-e-mails
+titre: Les messages et les e-mails
+badge:
+  id: messager
+  nom: Messager
+  description: "Tu as posté des messages dans une file d'attente, écrit leur gestionnaire et envoyé des e-mails qui se lisent hors du site : un technicien est prévenu dès qu'on lui confie un ticket."
+blocs:
+  - id: s14-preparation
+    type: preparation
+    titre: "Préparer la notification du technicien : message, file d'attente et e-mail"
+    duree: 15
+    fichier: preparation.md
+    programme: [divers.messenger]
+    champs:
+      - cle: technicien
+        libelle: "Le champ « Technicien » : qui le choisit, et parmi qui"
+        aide: "Qui doit pouvoir confier un ticket à un technicien ? Un technicien peut-il se réaffecter les tickets des autres ? Comment obtenir la liste des utilisateurs qui ont le rôle technicien, sachant que les rôles sont enregistrés en JSON ? Que se passe-t-il si quelqu'un envoie quand même un champ qui n'existe pas pour lui ?"
+        correction: |
+          - **Qui choisit : le gestionnaire** (et l'administrateur, qui le contient). Le sujet 11 a décidé qu'un technicien ne modifie que ses tickets : s'il pouvait aussi choisir le technicien, il pourrait **se débarrasser** d'un ticket ou **prendre** celui d'un autre. Pour les autres, le champ **n'existe pas** : c'est le contrôleur qui décide, par une option du formulaire, avec `isGranted()`.
+          - Un champ qui n'existe pas dans le formulaire est **refusé** s'il est envoyé quand même (« champs supplémentaires ») : le bouton masqué ne protège rien, le formulaire si.
+          - **Parmi qui : les utilisateurs qui ont le rôle `ROLE_TECHNICIEN`.** La colonne `roles` est du **JSON** : une requête SQL chercherait un morceau de texte, ce qui dépend du moteur de base et pourrait confondre deux rôles proches. On charge les utilisateurs et on **filtre en PHP**, où `roles` est un vrai tableau. C'est simple et exact tant que la liste est courte.
+          - Le gestionnaire n'apparaît pas dans la liste : la hiérarchie des rôles lui donne les droits d'un technicien, mais son rôle **enregistré** est `ROLE_GESTIONNAIRE`. Qui veut être les deux a les deux rôles.
+      - cle: message
+        libelle: "Le message : ce qu'il contient, quand il part"
+        aide: "Que faut-il mettre dans le message pour que le gestionnaire puisse écrire l'e-mail ? Qu'est-ce qui peut changer entre le moment où le message est posté et celui où il est traité ? Dans quels cas ne faut-il pas le poster ?"
+        correction: |
+          - Le message ne porte que **deux identifiants** : celui du ticket et celui du technicien. Il va attendre dans une file, être écrit puis relu : une entité entière serait copiée et **périmée** (ou supprimée) au moment du traitement.
+          - Entre l'envoi et le traitement, le ticket peut être **supprimé**, ou **confié à quelqu'un d'autre**. Le gestionnaire **recharge** le ticket et vérifie que le technicien est toujours le bon. Sinon il s'arrête **sans erreur** : réessayer ne changerait rien, et prévenir le mauvais technicien serait pire.
+          - Le message part **après l'enregistrement** (sinon le gestionnaire relirait un ticket qui n'existe pas encore en base), et **seulement si le technicien a changé et qu'il y en a un**. Enregistrer un autre champ n'envoie rien. Retirer le technicien n'envoie rien : personne à prévenir.
+          - Pour savoir si le technicien a changé, on compare celui d'**avant** la lecture du formulaire à celui d'**après** : après `handleRequest()`, l'objet porte déjà le nouveau (le même piège que l'affectation du matériel, au sujet 12).
+      - cle: email
+        libelle: "L'e-mail : objet, destinataire, expéditeur, lien"
+        aide: "D'où vient l'adresse de l'expéditeur ? Pourquoi le lien doit-il être absolu, et que faut-il régler pour qu'il le soit quand le gestionnaire tourne dans la console ? Où écrire le texte : dans le gestionnaire ou ailleurs ?"
+        correction: |
+          - L'objet est `Nouveau ticket : <titre>`, le destinataire est le technicien (adresse et nom), l'**expéditeur vient d'un paramètre** (`app.expediteur`) : il change selon l'environnement et ne s'écrit pas en dur.
+          - Le texte vit dans des **modèles Twig** (un texte brut et un HTML), pas dans le gestionnaire : le gestionnaire choisit les données, le modèle décide de l'affichage.
+          - Un e-mail se lit **hors du site** : une adresse relative (`/tickets/3/modifier`) n'y mène nulle part. Le lien est donc **absolu**.
+          - Le gestionnaire tourne dans la **console**, sans requête : le routeur ne sait pas sur quel site il est et écrirait `http://localhost/…`. L'option `framework.router.default_uri` (ici le paramètre `app.url_publique`) lui donne l'adresse du site.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Repository/UtilisateurRepository.php` (modifié), `src/Form/TicketType.php` (modifié), `src/Controller/TicketController.php` (modifié), `src/Message/TicketAffecte.php`, `src/MessageHandler/TicketAffecteHandler.php`, deux modèles sous `templates/email/`, et la ligne de routage dans `config/packages/messenger.yaml`.
+
+          1. La méthode du dépôt, puis le champ du formulaire (avec l'option réservée au gestionnaire) : testable sans message.
+          2. Le message, puis son émission dans `modifier()` et `nouveau()`, avec la comparaison avant/après.
+          3. Le routage vers `async` : lire le message dans le transport en mémoire.
+          4. Le gestionnaire et les modèles de l'e-mail : le traiter dans un test et lire l'e-mail.
+          5. Lancer les tests ; essayer à la main avec `messenger:consume`.
+  - id: s14-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : un message, son gestionnaire et un e-mail"
+    duree: 40
+    fichier: demonstration-1.md
+    programme: [divers.messenger, divers.mailer]
+  - id: s14-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : la file d'attente, le routage et la consommation"
+    duree: 30
+    fichier: demonstration-2.md
+    programme: [divers.messenger]
+  - id: s14-exercice
+    type: exercice
+    titre: "Exercice : prévenir le technicien quand on lui confie un ticket"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/MessagesEtEMails
+    programme: [divers.messenger, divers.mailer]

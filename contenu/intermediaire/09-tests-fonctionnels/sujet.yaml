@@ -1,0 +1,69 @@
+id: 09-tests-fonctionnels
+titre: Les tests fonctionnels
+badge:
+  id: chasseur-de-bugs
+  nom: Chasseur de bugs
+  description: "Tu as écrit des tests qui passent sur une application saine et échouent dès qu'on la casse : des tests qui vérifient vraiment quelque chose."
+blocs:
+  - id: s09-preparation
+    type: preparation
+    titre: "Préparer les tests des tickets"
+    duree: 15
+    fichier: preparation.md
+    programme: [tests.fonctionnels, tests.client, tests.crawler]
+    champs:
+      - cle: comportements
+        libelle: "Les comportements à tester"
+        aide: "Pour chacune des quatre fonctions demandées, écris la situation de départ, l'action, et ce que tu vérifies. Que vérifies-tu en plus du code de la réponse ?"
+        correction: |
+          - **Liste** : départ : aucun ticket nécessaire. Action : `GET /fr/tickets`. Vérifié : code 200 et un repère de la page (le titre).
+          - **Création valide** : départ : un matériel en base. Action : envoyer le formulaire avec un titre et une description valides. Vérifié : la **redirection** vers la fiche du matériel **et** le ticket **présent en base** (titre, statut `ouvert`, bon matériel).
+          - **Titre vide** : action : envoyer le formulaire sans titre. Vérifié : code **422**, message d'erreur à l'écran **et** aucun ticket enregistré.
+          - **Filtre** : départ : un ticket ouvert **et** un ticket résolu. Action : demander les résolus. Vérifié : **seul** le résolu est listé (et pas seulement « le résolu est là »).
+          - En plus du code de la réponse, on vérifie toujours **l'effet** : ce qui est en base, ce qui est affiché, ce qui est absent.
+      - cle: isolement
+        libelle: "Les données et l'isolement"
+        aide: "D'où viennent les données d'un test ? Que se passe-t-il si un test laisse des lignes en base ? Comment un test peut-il être sûr de partir d'une base vide ?"
+        correction: |
+          - Chaque test **fabrique lui-même** ses données (un matériel, des tickets) : il ne compte jamais sur ce qu'un autre test a laissé.
+          - Sinon, le résultat dépend de **l'ordre** des tests, et un test peut échouer ou passer pour de mauvaises raisons.
+          - La base de test est recréée **avant chaque test** (`setUp()` avec le trait `AvecBaseVierge`) ; elle est un autre fichier que celle du développement.
+      - cle: faux
+        libelle: "Un test qui passe toujours"
+        aide: "Cite deux façons d'écrire un test qui ne peut jamais échouer. Comment t'assures-tu que le tien le peut ?"
+        correction: |
+          - Un test qui ne vérifie que le **code de la réponse** : l'application peut répondre 302 sans avoir rien enregistré.
+          - Un test dont la situation de départ **ne distingue pas** le bon comportement du mauvais : demander les tickets ouverts quand il n'y a que des tickets ouverts ne prouve pas que le filtre filtre.
+          - On s'en assure en **cassant volontairement** l'application et en vérifiant que le test devient rouge. C'est exactement ce que fera l'exercice.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer, puis numérote les étapes."
+        correction: |
+          Fichiers : `tests/Junior/TicketTest.php` (créé). Il réutilise le trait `AvecBaseVierge` de la démonstration.
+
+          1. La classe, avec `setUp()` : client, base vierge, un matériel de départ.
+          2. Le test de la liste (le plus simple), lancé : vert.
+          3. Le test de création valide, avec la vérification en base.
+          4. Le test du titre vide.
+          5. Le test du filtre, avec deux tickets de statuts différents.
+          6. Casser l'application à la main pour chaque test, et le voir rouge.
+          7. Lancer l'exercice.
+  - id: s09-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : le premier test fonctionnel"
+    duree: 35
+    fichier: demonstration-1.md
+    programme: [tests.fonctionnels, tests.client, tests.crawler, tests.acces-framework, tests.unitaires, injection.conteneur]
+  - id: s09-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : formulaires, redirections et client de test"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [tests.client, tests.introspection, tests.configuration-client, tests.acces-framework, http.reponse, http.requete]
+  - id: s09-exercice
+    type: exercice
+    titre: "Exercice : tes tests des tickets"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/TestsFonctionnels
+    programme: [tests.fonctionnels, tests.client, tests.crawler, tests.introspection, tests.acces-framework]

@@ -1,0 +1,71 @@
+id: 06-formulaires-avances
+titre: Les formulaires avancés
+badge:
+  id: formulaires-sur-mesure
+  nom: Formulaires sur mesure
+  description: "Tu as téléversé un fichier sans lui faire confiance, transformé des données entre l'écran et l'objet, et fait dépendre un champ de l'état de l'objet."
+blocs:
+  - id: s06-preparation
+    type: preparation
+    titre: "Préparer la capture d'écran, les étiquettes et le statut"
+    duree: 15
+    fichier: preparation.md
+    programme: [formulaires.televersement, formulaires.transformateurs, formulaires.evenements]
+    champs:
+      - cle: fichier
+        libelle: "Le fichier envoyé"
+        aide: "Qu'est-ce que tu ne dois jamais reprendre du visiteur ? Qu'enregistres-tu en base ? Où ranges-tu le fichier, et sous quel nom ?"
+        correction: |
+          Du visiteur, on ne reprend **rien** : ni le nom du fichier, ni son extension, ni le type qu'il annonce.
+          - Le fichier est rangé dans un **dossier prévu**, hors de `public/`, donné par un **paramètre** (`app.dossier_televersements`).
+          - Il est rangé sous un **nom généré** (aléatoire), avec une extension **déduite du contenu**.
+          - En base, on garde seulement ce **nom généré** (`capture`), pas le fichier.
+          - Avant de ranger : on vérifie le **type réel** (PNG ou JPEG) et la **taille** (2 Mo au plus) avec une contrainte `File`. Un fichier refusé n'est jamais rangé.
+      - cle: etiquettes
+        libelle: "Les étiquettes"
+        aide: "Que voit l'utilisateur dans le champ ? Que garde l'objet ? Comment passes-tu de l'un à l'autre, dans les deux sens ?"
+        correction: |
+          - À l'écran : un seul texte, `réseau, urgent`.
+          - Dans l'objet : une liste, `['réseau', 'urgent']`, enregistrée en JSON.
+          - Un **transformateur de données** convertit : de la liste vers le texte (`implode`), et du texte vers la liste (découper sur les virgules, retirer les espaces, ignorer les étiquettes vides).
+          - Une saisie vide donne une liste vide : pas d'étiquette fantôme.
+      - cle: statut
+        libelle: "Le statut"
+        aide: "À quel moment le statut doit-il être modifiable ? Comment un champ peut-il dépendre de l'objet qu'on édite ?"
+        correction: |
+          - À la **création**, le statut n'est pas un choix : un ticket naît « ouvert ».
+          - En **modification**, il se choisit parmi ouvert, en cours, résolu.
+          - Un **écouteur** de l'événement `PRE_SET_DATA` regarde l'objet reçu : s'il a déjà un identifiant (il vient de la base), il ajoute le champ `statut`.
+          - Un champ absent du formulaire ne peut pas être imposé : un visiteur qui l'ajouterait à la main ferait refuser le formulaire.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus risqué."
+        correction: |
+          Fichiers : `src/Entity/Ticket.php` (modifié), `src/Form/TicketType.php` (modifié), `src/Controller/TicketController.php` (modifié : capture, modification), une migration, `templates/ticket/` (formulaire avec thème, page de modification, liste).
+
+          1. La propriété `capture`, le champ et la contrainte `File`, avec le service existant.
+          2. Essai à la main : une image renommée `capture.php`, un fichier texte renommé `capture.png`.
+          3. La propriété `etiquettes` et son transformateur.
+          4. La page de modification et le statut conditionnel.
+          5. Le thème.
+          6. La migration, relue, puis `doctrine:schema:update --dump-sql --complete`.
+          7. Lancer les tests.
+  - id: s06-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : joindre une facture sans faire confiance au fichier"
+    duree: 50
+    fichier: demonstration-1.md
+    programme: [formulaires.televersement, controleurs.televersement, divers.mime, injection.parametres, injection.enregistrement, validation.contraintes]
+  - id: s06-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : transformateur, événement et thème"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [formulaires.transformateurs, formulaires.evenements, formulaires.themes, formulaires.rendu, php.fonctions-anonymes]
+  - id: s06-exercice
+    type: exercice
+    titre: "Exercice : capture d'écran, étiquettes et statut des tickets"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/FormulairesAvances
+    programme: [formulaires.televersement, controleurs.televersement, formulaires.transformateurs, formulaires.evenements, formulaires.themes, validation.contraintes]

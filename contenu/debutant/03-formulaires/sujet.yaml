@@ -1,0 +1,79 @@
+id: 03-formulaires
+titre: Les formulaires et la validation
+badge:
+  id: gestionnaire-de-fournisseurs
+  nom: Gestionnaire de fournisseurs
+  description: "Tu as créé des formulaires d'ajout et de modification avec validation, et une suppression protégée par un jeton CSRF."
+blocs:
+  - id: s03-preparation
+    type: preparation
+    titre: "Préparer la gestion des fournisseurs"
+    duree: 15
+    fichier: preparation.md
+    programme: [formulaires.creation, validation.objets]
+    champs:
+      - cle: formulaire
+        libelle: "Formulaires et champs"
+        aide: "De quels formulaires as-tu besoin ? Pour chacun : les champs, leur type, et ce qui est obligatoire ou facultatif."
+        correction: |
+          Un seul **type de formulaire** (`FournisseurType`) suffit, utilisé pour l'ajout **et** la modification :
+          - `nom` : champ de texte ;
+          - `email` : champ de type e-mail ;
+          - `telephone` : champ de texte, **facultatif**.
+
+          La suppression n'a pas besoin de type de formulaire : un petit formulaire HTML avec un champ caché et un bouton suffit.
+      - cle: validation
+        libelle: "Règles de validation"
+        aide: "Qu'est-ce qui doit être refusé ? Où écris-tu ces règles, et que voit l'utilisateur quand une règle n'est pas respectée ?"
+        correction: |
+          - Le nom est obligatoire.
+          - L'adresse e-mail est obligatoire, au bon format, et **unique** parmi les fournisseurs (en ignorant le fournisseur lui-même quand on le modifie).
+          - Le téléphone a seulement une longueur maximale.
+
+          Les règles vivent **sur l'entité** (attributs `#[Assert\…]` et `#[UniqueEntity]`), pas dans le formulaire ni dans le contrôleur : elles décrivent ce qu'est un fournisseur valide. L'utilisateur revoit le formulaire avec un message en face de chaque champ refusé, et la réponse porte le code **422**.
+      - cle: routes
+        libelle: "Routes"
+        aide: "Pour chaque action : l'adresse, le nom de la route et la ou les méthodes HTTP autorisées. Pourquoi ce choix de méthode ?"
+        correction: |
+          - `/fournisseurs/nouveau`, `fournisseur_nouveau`, méthodes `GET` (afficher) et `POST` (envoyer).
+          - `/fournisseurs/{id}/modifier`, `fournisseur_modifier`, `GET` et `POST`, avec la restriction `\d+` sur `id`.
+          - `/fournisseurs/{id}/supprimer`, `fournisseur_supprimer`, **`POST` seulement**, avec la restriction `\d+` : une suppression ne doit jamais se déclencher par un simple lien.
+      - cle: suppression
+        libelle: "Suppression sûre"
+        aide: "Qu'est-ce qui empêche un site malveillant de faire supprimer un fournisseur à ton utilisateur, à son insu ? Où cela se vérifie-t-il ?"
+        correction: |
+          - Un **jeton CSRF** : un secret propre à la session de l'utilisateur et à l'action, placé dans un champ caché du formulaire de suppression.
+          - Le contrôleur vérifie le jeton **avant** de supprimer ; s'il est absent ou faux, il ne supprime rien et prévient l'utilisateur.
+          - La route n'accepte que `POST`, pour qu'un lien ou une image ne suffise pas.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes de la première ligne de code jusqu'à la suppression protégée."
+        correction: |
+          Fichiers : `src/Entity/Fournisseur.php` (modifié), `src/Form/FournisseurType.php` (créé), `src/Controller/FournisseurController.php` (modifié), `templates/fournisseur/` (formulaire partagé, ajout, modification ; liste et fiche modifiées), `templates/base.html.twig` (déjà prêt pour les messages flash).
+
+          1. Les règles de validation sur l'entité.
+          2. Le type de formulaire.
+          3. La page d'ajout (route, contrôleur, gabarit) : à essayer dans le navigateur avant de continuer.
+          4. La page de modification, qui reprend le même formulaire.
+          5. Les messages flash après chaque action.
+          6. La suppression : route `POST`, formulaire avec jeton dans la liste, vérification du jeton.
+          7. Lancer les tests.
+  - id: s03-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : ajouter un matériel avec un formulaire"
+    duree: 40
+    fichier: demonstration-1.md
+    programme: [formulaires.creation, formulaires.traitement, formulaires.types, formulaires.types-integres, formulaires.rendu, validation.objets, validation.contraintes, validation.portees, controleurs.requete, controleurs.flash, controleurs.redirections-http, twig.globales]
+  - id: s03-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : modifier et supprimer avec un jeton CSRF"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [formulaires.traitement, formulaires.csrf, routing.methodes, routing.generation-url, controleurs.requete, controleurs.erreur-404]
+  - id: s03-exercice
+    type: exercice
+    titre: "Exercice : la gestion des fournisseurs"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Formulaires
+    programme: [formulaires.creation, formulaires.traitement, formulaires.csrf, validation.contraintes, controleurs.flash, controleurs.redirections-http, routing.methodes]

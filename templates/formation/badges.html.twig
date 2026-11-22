@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Badges · Atelier Symfony{% endblock %}
+
+{% block contenu %}
+    <h1 class="titre-page">Badges</h1>
+    <p class="sous-titre">{{ nbObtenus }} / {{ cartes|length }} obtenus. Un badge récompense un exercice dont les tests sont verts.</p>
+
+    <div class="grille">
+        {% for carte in cartes %}
+            <article class="badge{% if not carte.obtenu %} badge--a-obtenir{% endif %}">
+                <span class="badge__icone" aria-hidden="true">{{ carte.obtenu ? '★' : '☆' }}</span>
+                <span class="etiquette">{{ carte.contexte }}</span>
+                <h2 class="badge__nom">{{ carte.badge.nom }}</h2>
+                <p class="badge__description">{{ carte.badge.description }}</p>
+                <span class="badge__etat">{{ carte.obtenu ? 'Obtenu' : 'À obtenir' }}</span>
+            </article>
+        {% endfor %}
+    </div>
+{% endblock %}

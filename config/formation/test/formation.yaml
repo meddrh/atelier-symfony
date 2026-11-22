@@ -1,0 +1,4 @@
+parameters:
+    formation.dossier_contenu: '%kernel.project_dir%/tests/Formation/fixtures/contenu-mini'
+    # Base de progression des tests, à part de celle du vrai parcours (valeur par défaut de FORMATION_DB).
+    env(FORMATION_DB): '%kernel.project_dir%/var/formation-test.sqlite'

@@ -1,0 +1,6 @@
+id: lecture-versions
+type: lecture
+titre: "Lecture : licence, versions, compatibilité et dépréciations"
+duree: 15
+fichier: lecture-versions.md
+programme: [architecture.licence, architecture.versions, architecture.compatibilite, architecture.deprecations, tests.code-deprecie]

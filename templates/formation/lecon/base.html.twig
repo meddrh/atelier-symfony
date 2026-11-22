@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% import '_blocs.html.twig' as b %}
+
+{% block title %}{{ bloc.titre }} · Atelier Symfony{% endblock %}
+
+{% block contenu %}
+    <div class="lecon">
+        <aside class="lecon__liste" aria-label="Blocs du sujet">
+            <h2>{% if sujet is not null %}Sujet {{ sujet.numero }} · {{ sujet.titre }}{% else %}Rappels et lectures{% endif %}</h2>
+            <ul class="blocs">
+                {% for item in liste %}{{ b.ligne(item, statuts[item.id], item.id == bloc.id) }}{% endfor %}
+            </ul>
+        </aside>
+
+        <article>
+            <p class="surtitre">{{ b.libelle(bloc.type) }} · {{ bloc.dureeMinutes }} min</p>
+            <h1 class="lecon__titre">{{ bloc.titre }}</h1>
+            {% block lecon_contenu %}{% endblock %}
+        </article>
+    </div>
+{% endblock %}

@@ -1,0 +1,66 @@
+id: 01-premieres-pages
+titre: Premières pages
+badge:
+  id: premieres-pages
+  nom: Premières pages
+  description: "Tu as créé des pages avec leurs routes, des gabarits Twig et la gestion de la page introuvable."
+blocs:
+  - id: s01-preparation
+    type: preparation
+    titre: "Préparer les pages des fournisseurs"
+    duree: 15
+    fichier: preparation.md
+    programme: [controleurs.conventions, routing.formats]
+    champs:
+      - cle: pages
+        libelle: "Pages à créer"
+        aide: "Liste chaque page que le visiteur doit pouvoir ouvrir, avec ce qu'elle affiche. Une ligne par page."
+        correction: |
+          1. Une page qui liste tous les fournisseurs (leur nom, chacun avec un lien vers sa fiche).
+          2. Une page qui montre un seul fournisseur (son nom et sa ville).
+      - cle: routes
+        libelle: "Routes"
+        aide: "Pour chaque page : l'adresse, le nom de la route et les restrictions sur le paramètre s'il y en a un."
+        correction: |
+          - `/fournisseurs`, nom `fournisseur_liste`.
+          - `/fournisseurs/{id}`, nom `fournisseur_fiche`, avec la restriction `\d+` sur `id` : l'adresse `/fournisseurs/abc` n'est pas une page de fiche.
+      - cle: fichiers
+        libelle: "Fichiers à créer"
+        aide: "Donne le chemin de chaque fichier et son rôle. Pense au code PHP, mais aussi au HTML."
+        correction: |
+          - `src/Controller/FournisseurController.php` : une classe, deux méthodes (`liste` et `fiche`), les trois fournisseurs écrits en dur.
+          - `templates/fournisseur/liste.html.twig` et `templates/fournisseur/fiche.html.twig`, qui héritent de `templates/base.html.twig` (déjà fait pour les matériels).
+      - cle: cas
+        libelle: "Cas particuliers"
+        aide: "Que doit répondre le serveur si l'identifiant n'existe pas ? Et s'il n'est pas un nombre ? Donne le code HTTP."
+        correction: |
+          - Identifiant inconnu (`/fournisseurs/999`) : la route correspond, mais la ressource n'existe pas. Le contrôleur lève une exception « page introuvable » : code **404**.
+          - Identifiant non numérique (`/fournisseurs/abc`) : la restriction `\d+` empêche la route de correspondre. Aucune route ne répond : code **404**, et jamais 500.
+      - cle: ordre
+        libelle: "Ordre des étapes"
+        aide: "Par quoi commences-tu pour voir un résultat dans le navigateur le plus tôt possible ? Numérote les étapes."
+        correction: |
+          1. Le contrôleur avec la route `/fournisseurs`, qui affiche déjà quelque chose de simple : première page visible.
+          2. Le gabarit de la liste, appelé par le contrôleur.
+          3. La route `/fournisseurs/{id}` avec sa restriction, puis son gabarit.
+          4. Le cas de l'identifiant inconnu (404).
+          5. Lancer les tests.
+  - id: s01-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : un contrôleur et des routes"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [controleurs.conventions, controleurs.abstract-controller, controleurs.reponse, routing.formats, routing.restrictions, controleurs.erreur-404, http.codes]
+  - id: s01-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : le gabarit Twig"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [twig.syntaxe, twig.echappement, twig.heritage, twig.boucles-conditions, twig.urls, routing.generation-url]
+  - id: s01-exercice
+    type: exercice
+    titre: "Exercice : les pages des fournisseurs"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/PremieresPages
+    programme: [controleurs.erreur-404, routing.restrictions, routing.generation-url, twig.heritage, twig.boucles-conditions, twig.urls]

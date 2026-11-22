@@ -1,0 +1,6 @@
+id: rappel-architecture
+type: rappel
+titre: "Rappel : organisation d'un projet Symfony et chemin d'une requête"
+duree: 15
+fichier: rappel-architecture.md
+programme: [architecture.flex, architecture.composants, architecture.organisation, architecture.traitement-requete]

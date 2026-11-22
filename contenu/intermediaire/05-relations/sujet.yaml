@@ -1,0 +1,80 @@
+id: 05-relations
+titre: Les relations entre entités
+badge:
+  id: relations-tissees
+  nom: Relations tissées
+  description: "Tu as relié des entités entre elles : matériels et utilisateurs, matériels et tickets, avec une requête de dépôt, un champ de formulaire et une suppression protégée."
+blocs:
+  - id: s05-preparation
+    type: preparation
+    titre: "Préparer les tickets d'incident"
+    duree: 15
+    fichier: preparation.md
+    programme: [hp.doctrine-relations, validation.objets]
+    champs:
+      - cle: entites
+        libelle: "Entités et propriétés"
+        aide: "Quelle nouvelle entité crées-tu ? Liste ses propriétés, leur type, et ce qui est obligatoire. Que vaut chaque propriété à la création d'un ticket ?"
+        correction: |
+          Une entité `Ticket` :
+          - `titre` : texte court, obligatoire ;
+          - `description` : texte long, obligatoire ;
+          - `statut` : `ouvert`, `en_cours` ou `resolu`, avec `ouvert` par défaut ;
+          - `creeLe` : date et heure, remplie **dans le constructeur** à l'instant présent (le visiteur ne la saisit pas) ;
+          - `materiel` : la relation vers le matériel.
+
+          Le statut et la date ne sont pas des champs du formulaire : ce sont des valeurs que l'application décide.
+      - cle: relation
+        libelle: "La relation"
+        aide: "Combien de tickets peut avoir un matériel ? Combien de matériels peut concerner un ticket ? Quelle table porte la clé étrangère, et pourquoi ?"
+        correction: |
+          - Un matériel a **plusieurs** tickets ; un ticket concerne **un seul** matériel : c'est une relation **plusieurs-à-un** (`ManyToOne`) vue depuis le ticket, **un-à-plusieurs** (`OneToMany`) vue depuis le matériel.
+          - C'est la table `ticket` qui porte la clé étrangère `materiel_id` : la « flèche » part du côté « plusieurs ». C'est le côté **propriétaire**, celui qui s'écrit dans la base.
+          - La clé étrangère est **obligatoire** : un ticket sans matériel n'a pas de sens.
+          - Le côté inverse (`Materiel::getTickets()`) se **lit** : il ne s'enregistre pas.
+      - cle: suppression
+        libelle: "Suppression d'un matériel"
+        aide: "Que doit-il arriver à un matériel qui a des tickets quand on veut le supprimer ? Quelles options as-tu, et laquelle choisis-tu ?"
+        correction: |
+          Trois options : supprimer aussi les tickets (suppression en cascade), mettre leur matériel à vide (impossible ici : la clé est obligatoire), ou **refuser** la suppression.
+
+          On refuse : un ticket est un historique d'incidents, on ne le détruit pas par effet de bord. Le contrôleur vérifie `$materiel->getTickets()->isEmpty()` **avant** de supprimer, prévient l'utilisateur avec un message d'erreur et redirige.
+      - cle: pages
+        libelle: "Pages et routes"
+        aide: "Quelle page crée un ticket ? Que contient son adresse, et que se passe-t-il si le matériel n'existe pas ? Où affiche-t-on les tickets ?"
+        correction: |
+          - `/materiels/{id}/tickets/nouveau`, route `ticket_nouveau`, méthodes `GET` et `POST`, avec `\d+` sur `id` : le ticket naît **dans le contexte** d'un matériel, l'adresse le dit.
+          - Matériel inconnu : page introuvable (404), comme pour les autres pages.
+          - Les tickets s'affichent sur la **fiche du matériel**, du plus récent au plus ancien : le tri se déclare une fois sur la relation (`#[ORM\OrderBy]`) plutôt que dans chaque page.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes de l'entité jusqu'à la suppression refusée."
+        correction: |
+          Fichiers : `src/Entity/Ticket.php` (créé), `src/Repository/TicketRepository.php` (créé), `src/Entity/Materiel.php` (modifié), une migration, `src/Form/TicketType.php` (créé), `src/Controller/TicketController.php` (créé), `src/Controller/MaterielController.php` (modifié), `templates/ticket/` (créé), `templates/materiel/fiche.html.twig` (modifié).
+
+          1. L'entité `Ticket`, avec ses règles de validation.
+          2. Le côté inverse dans `Materiel`.
+          3. La migration, exécutée, et un coup d'œil à la table.
+          4. Le type de formulaire et la page de création : à essayer dans le navigateur.
+          5. L'affichage des tickets sur la fiche.
+          6. Le refus de suppression.
+          7. Lancer les tests.
+  - id: s05-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : relier les matériels aux utilisateurs"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [hp.doctrine-relations, hp.doctrine-entites, hp.doctrine-migrations, validation.contraintes]
+  - id: s05-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : lire et choisir les utilisateurs"
+    duree: 40
+    fichier: demonstration-2.md
+    programme: [hp.doctrine-depots, hp.doctrine-relations, routing.restrictions, routing.valeurs-par-defaut, formulaires.types-integres, twig.boucles-conditions]
+  - id: s05-exercice
+    type: exercice
+    titre: "Exercice : les tickets d'incident"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Relations
+    programme: [hp.doctrine-relations, hp.doctrine-migrations, controleurs.flash, controleurs.erreur-404, formulaires.traitement, twig.inclusions, routing.generation-url]

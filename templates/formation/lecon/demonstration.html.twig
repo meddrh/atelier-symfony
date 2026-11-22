@@ -1,0 +1,25 @@
+{% extends 'lecon/base.html.twig' %}
+{% import '_blocs.html.twig' as b %}
+
+{# Démonstration pas à pas : une étape par page (?etape=N), « Terminé » sur la dernière. #}
+{% block lecon_contenu %}
+    <div class="prose">{{ etapes[etape - 1]|markdown_to_html }}</div>
+
+    <nav class="etapes" aria-label="Étapes de la démonstration">
+        {% if etape > 1 %}
+            <a class="bouton bouton--contour" href="{{ path('formation_lecon', {blocId: bloc.id, etape: etape - 1}|merge(parametresReste)) }}">Étape précédente</a>
+        {% else %}
+            <span></span>
+        {% endif %}
+        <span class="etapes__position">Étape {{ etape }} sur {{ etapes|length }}</span>
+        {% if etape < etapes|length %}
+            <a class="bouton bouton--sombre" href="{{ path('formation_lecon', {blocId: bloc.id, etape: etape + 1}|merge(parametresReste)) }}">Étape suivante</a>
+        {% elseif peutTerminer %}
+            {{ b.terminer(bloc, reste, 'Terminé') }}
+        {% elseif statut.value == 'fait' %}
+            {{ b.etat(statut) }}
+        {% else %}
+            <span></span>
+        {% endif %}
+    </nav>
+{% endblock %}

@@ -1,0 +1,6 @@
+id: rappel-php-exceptions
+type: rappel
+titre: "Rappel : exceptions, bibliothèque standard, traits et fonctions anonymes"
+duree: 15
+fichier: rappel-php-exceptions.md
+programme: [php.exceptions, php.spl, php.traits, php.fonctions-anonymes]

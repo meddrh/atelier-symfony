@@ -1,0 +1,87 @@
+id: 02-donnees
+titre: Les données avec Doctrine
+badge:
+  id: fournisseurs-en-base
+  nom: Fournisseurs en base
+  description: "Tu as créé une entité, sa migration et des pages qui lisent leurs données dans la base."
+blocs:
+  - id: s02-preparation
+    type: preparation
+    titre: "Préparer l'entité des fournisseurs"
+    duree: 15
+    fichier: preparation.md
+    programme: [hp.doctrine-entites, hp.doctrine-migrations]
+    champs:
+      - cle: champs
+        libelle: "Entité et champs"
+        aide: "Pour chaque information à conserver : son nom, son type, si elle est obligatoire, si elle doit être unique."
+        correction: |
+          Entité `Fournisseur`, avec :
+          - `id` : entier, clé primaire, numérotation automatique ;
+          - `nom` : texte court, obligatoire ;
+          - `email` : texte, obligatoire, **unique** ;
+          - `telephone` : texte, **facultatif** (peut valoir `null`).
+
+          Le téléphone est du texte et non un nombre : il peut commencer par un zéro ou contenir des espaces.
+      - cle: contraintes
+        libelle: "Contraintes dans la base"
+        aide: "Qu'est-ce que la base elle-même doit refuser ? Écris ce qui se passe si on enregistre deux fournisseurs avec le même e-mail."
+        correction: |
+          - La colonne `email` porte un **index unique** : la base refuse un second fournisseur avec la même adresse, même si le code PHP oublie de vérifier.
+          - Les colonnes `nom` et `email` sont `NOT NULL` ; seule `telephone` accepte `NULL`.
+          - L'enregistrement du doublon échoue avec une exception de contrainte d'unicité.
+      - cle: fichiers
+        libelle: "Fichiers à créer ou à modifier"
+        aide: "Donne le chemin de chaque fichier. Pense à ce qui existe déjà (les pages du sujet précédent) et à ce qui doit changer."
+        correction: |
+          À créer :
+          - `src/Entity/Fournisseur.php` ;
+          - `src/Repository/FournisseurRepository.php` ;
+          - une migration dans `migrations/` (générée par une commande).
+
+          À modifier :
+          - `src/Controller/FournisseurController.php` : les données en dur disparaissent, le dépôt les remplace ;
+          - `templates/fournisseur/liste.html.twig` et `fiche.html.twig` : ils affichent maintenant des objets.
+      - cle: commandes
+        libelle: "Commandes à lancer, dans l'ordre"
+        aide: "Quelles commandes de la console pour passer de l'entité à une table qui existe dans la base ?"
+        correction: |
+          1. `php bin/console make:migration` : compare les entités avec la base et écrit la migration.
+          2. Relire la migration générée (le SQL correspond-il à ce que j'attendais ?).
+          3. `php bin/console doctrine:migrations:migrate` : exécute la migration, la table `fournisseur` est créée.
+      - cle: pages
+        libelle: "Pages, tri et cas particuliers"
+        aide: "Que change-t-on dans les deux pages ? Dans quel ordre la liste est-elle triée ? Que se passe-t-il si l'identifiant n'existe pas ?"
+        correction: |
+          - La liste lit tous les fournisseurs dans la base, **triés par nom** (ordre croissant).
+          - La fiche cherche un fournisseur par son identifiant ; s'il n'existe pas : exception « page introuvable », code **404**.
+          - Les routes et leur restriction `\d+` ne changent pas.
+      - cle: ordre
+        libelle: "Ordre des étapes"
+        aide: "Numérote les étapes de la première ligne de code jusqu'à la page qui s'affiche."
+        correction: |
+          1. Écrire l'entité avec ses attributs.
+          2. Écrire le dépôt (ou le générer).
+          3. Générer et exécuter la migration.
+          4. Ajouter une ou deux lignes de test dans la table.
+          5. Remplacer les données en dur par le dépôt dans le contrôleur, adapter les gabarits.
+          6. Lancer les tests.
+  - id: s02-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : l'entité et sa migration"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [hp.doctrine-entites, hp.doctrine-depots, hp.doctrine-migrations, console.commandes-integrees]
+  - id: s02-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : lire les données dans la base"
+    duree: 30
+    fichier: demonstration-2.md
+    programme: [hp.doctrine-depots, injection.cablage-automatique, injection.services-integres, twig.boucles-conditions, controleurs.erreur-404]
+  - id: s02-exercice
+    type: exercice
+    titre: "Exercice : les fournisseurs en base"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Donnees
+    programme: [hp.doctrine-entites, hp.doctrine-depots, hp.doctrine-migrations, controleurs.erreur-404, injection.cablage-automatique]

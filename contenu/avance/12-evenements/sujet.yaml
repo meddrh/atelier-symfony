@@ -1,0 +1,72 @@
+id: 12-evenements
+titre: Les événements
+badge:
+  id: a-l-ecoute
+  nom: À l'écoute
+  description: "Tu as branché ton code sur les annonces du noyau et de la console, puis tu as créé ton propre événement : chaque changement d'affectation d'un matériel laisse maintenant une trace dans un historique."
+blocs:
+  - id: s12-preparation
+    type: preparation
+    titre: "Préparer l'historique des affectations et son événement"
+    duree: 15
+    fichier: preparation.md
+    programme: [architecture.evenements]
+    champs:
+      - cle: donnees
+        libelle: "Ce que contient l'historique, et qui l'écrit"
+        aide: "Une ligne d'historique doit répondre à : quel matériel, de qui, à qui, quand, et qui a fait le changement. Quelles informations sont obligatoires, lesquelles peuvent manquer ? Qui connaît l'utilisateur connecté, le contrôleur ou autre chose ?"
+        correction: |
+          - Une ligne : le **matériel** (obligatoire), l'**ancien utilisateur** et le **nouvel utilisateur** (tous deux **facultatifs** : avant la première affectation il n'y a personne, et un retour au stock remet « personne »), la **date** du changement (`faitLe`) et l'**auteur** (l'utilisateur connecté, facultatif : une commande de la console n'en a pas).
+          - Si un utilisateur est supprimé plus tard, la ligne **reste** : le champ revient à « personne » (`SET NULL` en base). Si c'est le **matériel** qui est supprimé, son historique n'a plus de sens : il disparaît avec lui (`CASCADE`).
+          - Le contrôleur **sait** qu'une affectation vient de changer, mais l'écriture de l'historique **n'est pas son travail** : il annonce, et un abonné écrit. L'auteur, lui, s'obtient depuis le service de sécurité, au moment d'écrire.
+      - cle: evenement
+        libelle: "L'événement maison : quand l'émettre, et qui l'écoute"
+        aide: "Dans quels cas précis le contrôleur annonce-t-il « une affectation a changé » ? Que se passe-t-il si on enregistre le formulaire sans toucher à l'affectation ? Qu'est-ce que l'événement doit contenir pour que l'abonné n'ait besoin de rien d'autre ? Qui d'autre pourrait un jour l'écouter ?"
+        correction: |
+          - On l'émet **seulement si l'affectation a changé** : comparer l'utilisateur d'**avant** la lecture du formulaire à celui d'**après**. Enregistrer le formulaire sans y toucher (ou en changeant seulement le nom du matériel) **n'écrit aucune ligne**. Sinon l'historique se remplirait de lignes sans changement : du bruit.
+          - L'événement porte les **faits** : le matériel, l'ancien utilisateur, le nouvel utilisateur. L'abonné n'a besoin de rien d'autre (sauf de l'auteur, qu'il demande lui-même à la sécurité).
+          - Intérêt : demain, une notification par e-mail (sujet 14) **s'abonnera au même événement** sans que le contrôleur change. Celui qui annonce ne sait pas qui écoute.
+          - Un matériel **créé déjà affecté** change aussi d'affectation : de « personne » à son utilisateur.
+      - cle: page
+        libelle: "La page d'historique"
+        aide: "Quelle adresse, quel ordre d'affichage, que montrer quand l'ancien ou le nouvel utilisateur est « personne », et qui a le droit de la voir ?"
+        correction: |
+          - Adresse `/materiels/{id}/historique`, du **plus récent au plus ancien**. À date égale, la ligne la plus récemment **écrite** passe devant : on trie sur la date, puis sur l'identifiant, tous deux décroissants.
+          - Une ligne sans ancien (ou sans nouvel) utilisateur affiche « personne ». Sans auteur : « inconnu ».
+          - Le droit de la voir est celui de **consulter le matériel** : on réutilise le contrôle des droits du sujet 11, pas une règle de plus. Un matériel inconnu donne 404.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Entity/HistoriqueAffectation.php`, `src/Repository/HistoriqueAffectationRepository.php`, une migration, `src/Event/MaterielAffecteEvent.php`, `src/EventSubscriber/HistoriqueAffectationSubscriber.php`, `src/Controller/MaterielController.php` (modifié), `templates/materiel/historique.html.twig` et un lien dans `templates/materiel/fiche.html.twig`.
+
+          1. L'entité et sa migration, puis la requête qui liste l'historique d'un matériel.
+          2. L'événement, puis l'abonné qui écrit la ligne (testable seul, en annonçant l'événement à la main).
+          3. L'émission dans `modifier()`, **seulement** quand l'affectation change, puis dans `nouveau()`.
+          4. La page d'historique et son lien.
+          5. Lancer les tests ; essayer à la main : changer l'affectation, ne rien changer, regarder la page.
+  - id: s12-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : les événements du noyau (maintenance et en-tête)"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [architecture.evenements]
+  - id: s12-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : une exception métier, et les événements de la console"
+    duree: 30
+    fichier: demonstration-2.md
+    programme: [architecture.exceptions, divers.erreurs, console.evenements]
+  - id: s12-demo-3
+    type: demonstration
+    titre: "Démonstration, partie 3 : annoncer un événement maison depuis le contrôleur"
+    duree: 30
+    fichier: demonstration-3.md
+    programme: [architecture.evenements]
+  - id: s12-exercice
+    type: exercice
+    titre: "Exercice : l'historique des affectations par un événement maison"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/Evenements
+    programme: [architecture.evenements, architecture.exceptions, console.evenements, divers.erreurs]

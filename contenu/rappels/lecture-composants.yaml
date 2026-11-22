@@ -1,0 +1,6 @@
+id: lecture-composants
+type: lecture
+titre: "Lecture : Dotenv, Process, Filesystem, Finder, Runtime, extensions PHP, profileur, passerelle PHPUnit, inclusions ESI et déploiement"
+duree: 20
+fichier: lecture-composants.md
+programme: [divers.dotenv, divers.process, divers.filesystem, divers.finder, divers.runtime, php.extensions, tests.profiler, divers.collecteurs, tests.phpunit-bridge, cache-http.esi, divers.deploiement]

@@ -1,0 +1,53 @@
+#!/usr/bin/env php
+<?php
+
+// `bin/exercice test` : lance les tests de l'exercice en cours.
+// Il passe par le noyau de la plateforme (FormationKernel), qui ne charge rien du code ni de la configuration du
+// junior, et ne lit aucun .env : le code du junior ne tourne que dans le sous-processus PHPUnit lancé par la
+// commande, où ses erreurs sont comptées rouges.
+
+use App\Formation\Contenu\ChargeurCatalogue;
+use App\Formation\Contenu\ContenuInvalide;
+use App\Formation\Exercice\PointDEntree;
+use App\Formation\FormationKernel;
+use App\Formation\Progression\ProgressionStore;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Output\ConsoleOutput;
+
+$projet = dirname(__DIR__);
+require $projet.'/vendor/autoload.php';
+
+$sortie = new ConsoleOutput();
+
+// Panne de la plateforme, pas du junior : message clair, code 2, rien d'enregistré.
+$panne = static function (string $constat, \Throwable $erreur) use ($sortie): never {
+    $sortie->writeln(OutputFormatter::escape(sprintf('%s : %s. Ce n\'est pas ton code : préviens Mohammed.', $constat, rtrim($erreur->getMessage(), '. '))));
+    exit(2);
+};
+
+try {
+    // Même source que le service ProgressionStore : la variable FORMATION_DB, ou sa valeur par défaut.
+    $cheminBase = $_SERVER['FORMATION_DB'] ?? (getenv('FORMATION_DB') ?: FormationKernel::BASE_PAR_DEFAUT);
+    $store = new ProgressionStore(str_replace('%kernel.project_dir%', $projet, $cheminBase));
+    $store->ouvrir();
+} catch (\Throwable $erreur) {
+    $panne('La base de progression est illisible', $erreur);
+}
+try {
+    (new ChargeurCatalogue($projet.'/contenu', $projet))->charger();
+} catch (ContenuInvalide $erreur) {
+    $panne('Le contenu de la formation est invalide', $erreur);
+}
+
+$noyau = static function (): Application {
+    // Comme Application::run() le ferait avant le démarrage du noyau : sans cela, le journal du
+    // noyau en mode développement afficherait tous ses messages de débogage dans le terminal.
+    $_SERVER['SHELL_VERBOSITY'] = $_ENV['SHELL_VERBOSITY'] = getenv('SHELL_VERBOSITY') ?: 0;
+    $kernel = FormationKernel::parDefaut();
+    $kernel->boot();
+
+    return new Application($kernel);
+};
+
+exit((new PointDEntree($noyau))->executer($argv, $sortie));

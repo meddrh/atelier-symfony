@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bloc verrouillé · Atelier Symfony{% endblock %}
+
+{% block classe_page %} page--etroite{% endblock %}
+
+{% block contenu %}
+    <h1 class="titre-page">Bloc verrouillé</h1>
+    <section class="carte">
+        <p class="consigne">Ce bloc n'est pas encore ouvert. Termine d'abord : « {{ courant.titre }} ».</p>
+        <div class="actions">
+            <a class="bouton bouton--sombre" href="{{ path('formation_lecon', {blocId: courant.id}) }}">Aller au bloc en cours</a>
+            <a class="bouton bouton--contour" href="{{ path('formation_parcours') }}">Voir le parcours</a>
+        </div>
+    </section>
+{% endblock %}

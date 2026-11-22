@@ -1,0 +1,15 @@
+id: intermediaire
+nom: Intermédiaire
+sous_titre: Relations, formulaires avancés, validation, session, traductions et tests fonctionnels
+badge:
+  id: niveau-intermediaire
+  nom: Niveau Intermédiaire
+  description: "Tu as validé tous les exercices du niveau Intermédiaire : relations, formulaires avancés, validation, session, traductions et tests fonctionnels."
+
+sujets: [05-relations, 06-formulaires-avances, 07-validation-avancee, 08-session-traductions, 09-tests-fonctionnels]
+
+# Blocs « hors sujet » (rappels, lectures) placés avant ou après un sujet.
+intercalaires:
+  - { avant: 05-relations, blocs: [rappel-php-exceptions] }
+  - { avant: 08-session-traductions, blocs: [rappel-twig-avance] }
+  - { apres: 09-tests-fonctionnels, blocs: [lecture-debogage] }

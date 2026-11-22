@@ -1,0 +1,6 @@
+id: rappel-routage-avance
+type: rappel
+titre: "Rappel : redirections, contrôleurs internes, attributs spéciaux, conditions, interpolation et extensions de formulaire"
+duree: 15
+fichier: rappel-routage-avance.md
+programme: [routing.redirections, routing.attributs-speciaux, routing.domaine, routing.conditions, controleurs.redirections-internes, controleurs.controleurs-internes, twig.interpolation, twig.ressources, formulaires.extensions]

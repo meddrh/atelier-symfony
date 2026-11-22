@@ -1,0 +1,15 @@
+{% extends 'lecon/base.html.twig' %}
+{% import '_blocs.html.twig' as b %}
+
+{# Rappel ou lecture : un texte, puis « Terminé ». #}
+{% block lecon_contenu %}
+    <div class="prose">{{ texte|markdown_to_html }}</div>
+
+    <div class="actions">
+        {% if peutTerminer %}
+            {{ b.terminer(bloc, reste, 'Terminé') }}
+        {% elseif statut.value == 'fait' %}
+            {{ b.etat(statut) }}
+        {% endif %}
+    </div>
+{% endblock %}

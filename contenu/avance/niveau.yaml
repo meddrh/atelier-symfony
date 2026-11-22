@@ -1,0 +1,15 @@
+id: avance
+nom: Avancé
+sous_titre: Sécurité, contrôle des droits, événements, services, messages et e-mails, services externes, cache et verrous
+badge:
+  id: niveau-avance
+  nom: Niveau Avancé
+  description: "Tu as validé tous les exercices du niveau Avancé : sécurité, contrôle des droits, événements, services, messages et e-mails, services externes, cache et verrous."
+
+sujets: [10-authentification, 11-controle-des-droits, 12-evenements, 13-services-avances, 14-messages-et-e-mails, 15-services-externes-cache-verrou]
+
+# Blocs « hors sujet » (rappels, lectures) placés avant ou après un sujet.
+intercalaires:
+  - { avant: 10-authentification, blocs: [rappel-routage-avance] }
+  - { avant: 13-services-avances, blocs: [lecture-architecture-avancee] }
+  - { apres: 15-services-externes-cache-verrou, blocs: [lecture-composants] }

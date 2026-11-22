@@ -1,0 +1,7 @@
+id: niveau1
+nom: Débutant
+sous_titre: Les bases
+badge: { id: niveau-1, nom: Niveau Débutant, description: Tous les exercices du niveau validés. }
+sujets: [01-s1, 02-s2]
+intercalaires:
+  - { avant: 01-s1, blocs: [rappel-a] }

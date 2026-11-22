@@ -1,0 +1,26 @@
+# Réglage du noyau de la plateforme, chargé par src/Formation/FormationKernel.php.
+# Le junior a son propre config/packages/framework.yaml : les deux fichiers n'ont rien en commun.
+framework:
+    # Signe les jetons CSRF et la session de la plateforme, seulement joignable depuis la boucle locale :
+    # ce n'est pas un secret de production, et il ne doit pas venir d'un .env que le junior pourrait casser.
+    secret: 'plateforme-de-formation-locale'
+    csrf_protection: true
+    http_method_override: false
+    router:
+        utf8: true
+    session:
+        handler_id: null
+        cookie_secure: auto
+        cookie_samesite: lax
+        storage_factory_id: session.storage.factory.native
+    php_errors:
+        log: true
+    # La plateforme n'envoie aucun message : sans cette ligne, messenger (installé pour le niveau Avancé) s'active
+    # et émet une dépréciation sur reset_on_message.
+    messenger: false
+
+when@test:
+    framework:
+        test: true
+        session:
+            storage_factory_id: session.storage.factory.mock_file

@@ -1,0 +1,73 @@
+id: 11-controle-des-droits
+titre: Le contrôle des droits
+badge:
+  id: gardien-des-droits
+  nom: Gardien des droits
+  description: "Tu as décidé, objet par objet, qui a le droit de quoi : un technicien ne touche qu'à ses tickets, seul l'administrateur supprime, et un compte désactivé est refusé partout, même avec ROLE_ADMIN."
+blocs:
+  - id: s11-preparation
+    type: preparation
+    titre: "Préparer le contrôle des droits sur les tickets"
+    duree: 15
+    fichier: preparation.md
+    programme: [securite.droits, securite.strategies]
+    champs:
+      - cle: regles
+        libelle: "Qui a le droit de faire quoi sur un ticket"
+        aide: "Pour un ticket, écris qui peut le modifier, le clôturer et le supprimer : un technicien qui n'en est pas chargé, le technicien chargé du ticket, un gestionnaire, un administrateur. Pourquoi une règle de rôle (« ROLE_… ») ne suffit-elle pas ici ?"
+        correction: |
+          - Un **rôle** répond à « que fait cette **personne** ? ». Ici, la question porte sur un **objet précis** : « cette personne peut-elle toucher **ce** ticket ? ». Un technicien a le même rôle pour tous les tickets, et pourtant il ne doit toucher qu'aux siens : une règle de rôle ne peut pas l'exprimer. C'est le travail d'un **contrôle des droits** (une classe qui reçoit l'utilisateur **et** l'objet).
+          - Modifier et clôturer : le **technicien chargé du ticket**, tout **gestionnaire**, tout **administrateur** (qui contient gestionnaire). Un technicien **qui n'est pas** chargé du ticket, ou un ticket **sans technicien** : non.
+          - Supprimer : **l'administrateur seulement**, même pour le technicien chargé du ticket.
+          - Pour savoir si l'utilisateur est gestionnaire, on demande au service de sécurité `isGranted('ROLE_GESTIONNAIRE')`, qui tient compte de la **hiérarchie** des rôles : lire `getRoles()` à la main raterait l'administrateur.
+      - cle: refus
+        libelle: "Où appliquer le refus, et que montrer à l'écran"
+        aide: "Tu veux que le technicien ne voie pas le bouton « Modifier » des tickets des autres. Cela suffit-il ? Que se passe-t-il s'il tape l'adresse lui-même, ou s'il envoie un formulaire en POST ? Quel code de réponse attends-tu ?"
+        correction: |
+          - **Masquer un bouton ne protège rien** : l'adresse reste joignable par le navigateur, par `curl`, par un autre programme. Le refus réel se place **dans le contrôleur**, avant de lire le formulaire : `denyAccessUnlessGranted()` lève une exception qui donne **403** (« je sais qui tu es, et c'est non »).
+          - Le bouton masqué (`is_granted('MODIFIER', ticket)` dans Twig) n'est qu'un **confort** : on ne montre pas ce qu'on va refuser. La **même** question, posée au même endroit de la logique, alimente le bouton et le contrôleur.
+          - Le test appelle l'adresse **directement**, en `GET` **et** en `POST`, et vérifie que **rien n'a changé** en base : le 403 arrive avant toute modification.
+          - La suppression est une action en `POST` avec un jeton CSRF : le contrôle des droits passe **avant** le jeton, pour qu'un non-administrateur reçoive 403 quel que soit le jeton.
+      - cle: desactive
+        libelle: "Un compte désactivé, même administrateur"
+        aide: "Un administrateur est désactivé. Ses rôles n'ont pas changé : il devrait pourtant être refusé partout. Où mets-tu cette règle pour qu'elle ne soit pas à répéter dans chaque contrôle ? Plusieurs contrôles répondent : que doit-il se passer quand un seul dit « non » ?"
+        correction: |
+          - Une règle qui vaut **partout** est un **second contrôle des droits**, indépendant des autres (`CompteActifVoter`) : il ne sait pas dire « oui », seulement « non » (compte désactivé) ou « je m'abstiens ».
+          - Plusieurs contrôles répondent à chaque question. La **stratégie de décision** dit comment combiner leurs réponses. Par défaut (`affirmative`), **un seul « oui » suffit** : le « oui » de `ROLE_ADMIN` l'emporterait sur le « non » du compte désactivé. Avec `unanimous`, **un seul « non » l'emporte**.
+          - Le test qui le prouve crée un compte **désactivé qui garde `ROLE_ADMIN`** et vérifie le 403. Il doit **échouer** si on remet la stratégie par défaut : c'est ce qui prouve que la stratégie est bien celle qui fait le travail.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Entity/Ticket.php` et `src/Entity/Utilisateur.php` (modifiés), **une** migration, `src/Security/TicketVoter.php`, `src/Security/CompteActifVoter.php`, `config/packages/security.yaml` (modifié), `src/Controller/TicketController.php` (modifié, avec la suppression), `templates/ticket/_ticket.html.twig` (modifié).
+
+          1. Le champ `technicien` du ticket et le champ `actif` de l'utilisateur, puis la migration.
+          2. Le contrôle des droits sur les tickets, avec ses tests en `GET` et en `POST`.
+          3. Les boutons masqués dans Twig, et la suppression réservée à l'administrateur.
+          4. Le contrôle du compte désactivé, **puis** la stratégie `unanimous`.
+          5. Vérifier que le test du compte désactivé échoue si tu remets la stratégie par défaut, puis la remettre.
+  - id: s11-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : un contrôle des droits sur les matériels"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [securite.autorisation, securite.droits, twig.filtres-fonctions]
+  - id: s11-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : une règle d'accès écrite en expression"
+    duree: 20
+    fichier: demonstration-2.md
+    programme: [divers.expression-language, securite.autorisation, securite.strategies]
+  - id: s11-demo-3
+    type: demonstration
+    titre: "Démonstration, partie 3 : un contrôle des droits écrit avec VoterInterface, et la stratégie « unanime »"
+    duree: 25
+    fichier: demonstration-3.md
+    programme: [securite.droits, securite.strategies]
+  - id: s11-exercice
+    type: exercice
+    titre: "Exercice : les droits sur les tickets et le compte désactivé"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/ControleDesDroits
+    programme: [securite.droits, securite.strategies, securite.autorisation, twig.filtres-fonctions]

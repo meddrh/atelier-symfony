@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Atelier Symfony{% endblock %}</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="{{ asset('atelier/atelier.css') }}">
+</head>
+<body>
+{% set route = app.request.attributes.get('_route') %}
+<header class="barre">
+    <div class="barre__contenu">
+        <a class="marque" href="{{ path('formation_seance') }}">Atelier Symfony</a>
+        <nav class="liens" aria-label="Navigation principale">
+            <a href="{{ path('formation_seance') }}"{% if route == 'formation_seance' %} aria-current="page"{% endif %}>Séance du jour</a>
+            <a href="{{ path('formation_parcours') }}"{% if route == 'formation_parcours' %} aria-current="page"{% endif %}>Parcours</a>
+            <a href="{{ path('formation_badges') }}"{% if route == 'formation_badges' %} aria-current="page"{% endif %}>Badges</a>
+            <a href="{{ path('formation_programme') }}"{% if route == 'formation_programme' %} aria-current="page"{% endif %}>Programme</a>
+        </nav>
+        <details class="duree">
+            <summary aria-label="Durée de la séance : {{ duree_seance() }} minutes. Modifier">⏱ {{ duree_seance() }} min</summary>
+            <form class="duree__menu" method="post" action="{{ path('formation_duree') }}">
+                <p>Durée de ta séance</p>
+                <input type="hidden" name="_token" value="{{ csrf_token('duree') }}">
+                <div class="duree__choix">
+                    {% for minutes in [15, 30, 45, 60] %}
+                        <button class="bouton bouton--contour bouton--petit" type="submit" name="minutes" value="{{ minutes }}">{{ minutes }} min</button>
+                    {% endfor %}
+                </div>
+            </form>
+        </details>
+    </div>
+</header>
+<main class="page{% block classe_page %}{% endblock %}">
+    {% for type, messages in app.flashes %}
+        {% for message in messages %}
+            <p class="message message--{{ type }}" role="status">{{ message }}</p>
+        {% endfor %}
+    {% endfor %}
+    {% block contenu %}{% endblock %}
+</main>
+</body>
+</html>

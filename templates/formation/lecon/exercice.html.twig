@@ -1,0 +1,66 @@
+{% extends 'lecon/base.html.twig' %}
+
+{# Exercice : énoncé, tests attendus, terminal. Il n'a pas de bouton « Terminé » : seuls des tests verts le valident. #}
+{% block lecon_contenu %}
+    {% if statut.value == 'fait' %}
+        <p class="message validation" role="status">Exercice validé — Badge débloqué : {{ badge is not null ? badge.nom : '' }}</p>
+    {% endif %}
+
+    <div class="prose">{{ enonce|markdown_to_html }}</div>
+
+    {% if testsAttendus is not null %}
+        <section class="tests-attendus prose" aria-labelledby="tests-attendus">
+            <h2 id="tests-attendus">Tests attendus</h2>
+            {{ testsAttendus|markdown_to_html }}
+        </section>
+    {% endif %}
+
+    <p>Lance les tests depuis le terminal du conteneur : <code>docker compose exec app bin/exercice test</code></p>
+    <div class="terminal" role="region" aria-label="Terminal">
+        <div class="terminal__commande">bin/exercice test</div>
+        {% if dernier is null %}
+            <div class="terminal__sortie">Aucun lancement pour l'instant.</div>
+        {% elseif dernier.vert %}
+            <div class="terminal__sortie terminal__sortie--vert">Bravo, tous les tests passent ({{ dernier.nbReussis }}/{{ dernier.nbTests }}).</div>
+        {% else %}
+            {# .terminal__sortie garde les espaces (pre-wrap) : pas de mise en page autour du texte et de la liste. #}
+            <div class="terminal__sortie terminal__sortie--rouge">
+                {{- dernier.nbReussis }}/{{ dernier.nbTests }} tests passent.
+                {%- if rouges is null %} {{ dernier.resume }}
+                {%- else %} {{ rouges.titre }}<ul class="terminal__rouges">
+                    {%- for ligne in rouges.lignes -%}<li>{{ ligne }}</li>{%- endfor -%}
+                    {%- if rouges.suite is not null -%}<li>{{ rouges.suite }}</li>{%- endif -%}
+                </ul>{{ rouges.libelleDuDetail }} <code>{{ rouges.commandeDuDetail }}</code>
+                {%- endif -%}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if besoinDAide %}
+        <section class="carte aide" aria-labelledby="aide-titre">
+            <h2 id="aide-titre">Tu bloques ?</h2>
+            <p>Les tests ne passent pas encore, et c'est normal : un exercice demande parfois plusieurs essais. Si tu ne vois pas comment avancer, demande de l'aide.</p>
+            <button class="bouton bouton--sombre" type="button" onclick="document.getElementById('aide').showModal()">Demander de l'aide</button>
+        </section>
+        <dialog id="aide" aria-labelledby="aide-message">
+            <p id="aide-message">Mohammed va t'aider, demande-lui directement.</p>
+            <form method="dialog"><button class="bouton bouton--contour" type="submit">Fermer</button></form>
+        </dialog>
+    {% endif %}
+
+    {% if historique is not empty %}
+        <section class="carte" aria-labelledby="historique-titre">
+            <h2 id="historique-titre">Historique des lancements ({{ nbLancements }})</h2>
+            <ul class="historique">
+                {% for lancement in historique %}
+                    <li>
+                        <span class="test-etat test-etat--{{ lancement.vert ? 'vert' : 'rouge' }}">{{ lancement.vert ? 'Vert' : 'Rouge' }}</span>
+                        <span>{{ lancement.nbReussis }}/{{ lancement.nbTests }}</span>
+                        <time datetime="{{ lancement.date|date('c') }}">{{ lancement.date|date('d/m/Y H:i') }}</time>
+                        <span>{{ lancement.resume }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+{% endblock %}

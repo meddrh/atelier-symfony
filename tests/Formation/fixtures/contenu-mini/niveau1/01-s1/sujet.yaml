@@ -1,0 +1,15 @@
+id: 01-s1
+titre: Premier sujet
+badge: { id: badge-s1, nom: Premier badge, description: Premier exercice validé. }
+blocs:
+  - id: s1-preparation
+    type: preparation
+    titre: Préparer le premier sujet
+    duree: 15
+    fichier: preparation.md
+    programme: []
+    champs:
+      - { cle: routes, libelle: Routes à créer, aide: "Ex : GET /fournisseurs", correction: "GET /fournisseurs" }
+      - { cle: ordre, libelle: Ordre des étapes, aide: "1. …", correction: "1. Contrôleur" }
+  - { id: s1-demonstration, type: demonstration, titre: Démonstration, duree: 15, fichier: demonstration.md, programme: [http.codes] }
+  - { id: s1-exercice, type: exercice, titre: Exercice, duree: 60, fichier: exercice.md, tests: tests/Formation/fixtures/exercices/Vert, programme: [http.codes] }

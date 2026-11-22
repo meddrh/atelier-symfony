@@ -1,0 +1,70 @@
+id: 07-validation-avancee
+titre: La validation avancée
+badge:
+  id: gardien-des-regles
+  nom: Gardien des règles
+  description: "Tu as fait appliquer chaque règle au bon moment : groupes de validation, séquence, méthode de rappel et contrainte personnalisée avec son validateur."
+blocs:
+  - id: s07-preparation
+    type: preparation
+    titre: "Préparer la clôture d'un ticket"
+    duree: 15
+    fichier: preparation.md
+    programme: [validation.groupes, validation.methodes-rappel, validation.violations]
+    champs:
+      - cle: moments
+        libelle: "Les règles et leur moment"
+        aide: "Quelles règles s'appliquent toujours ? Lesquelles seulement à un moment précis ? Comment rends-tu une règle « conditionnelle » sans écrire un `if` dans le contrôleur ?"
+        correction: |
+          - Toujours : le titre et la description sont obligatoires, le titre est lisible, la date de résolution ne précède pas la création.
+          - Seulement à la clôture : la **résolution** est obligatoire.
+
+          Une règle qui ne vaut qu'à un moment se range dans un **groupe de validation** nommé (`cloture`). Le formulaire de clôture dit quels groupes il applique (`validation_groups`) ; les autres formulaires, sans précision, appliquent le groupe `Default` et ne voient jamais cette règle. Aucun `if` dans le contrôleur : la règle vit sur l'entité, avec les autres.
+      - cle: outils
+        libelle: "Le bon outil pour chaque règle"
+        aide: "Pour chacune des quatre règles (résolution, dates, titre trop court, titre en majuscules) : contrainte intégrée, méthode de rappel ou contrainte personnalisée ? Pourquoi ?"
+        correction: |
+          - **Résolution obligatoire** : une contrainte intégrée, `NotBlank`, rangée dans le groupe `cloture`.
+          - **Date de résolution après la création** : elle compare **deux** propriétés ; aucune contrainte intégrée ne le fait. Une **méthode de rappel** (`#[Assert\Callback]`) sur l'entité, qui construit la violation et la rattache à `resoluLe` avec `atPath()`.
+          - **Titre lisible** : une règle de **format**, qu'on pourrait réutiliser sur d'autres champs. Une **contrainte personnalisée** (`TitreLisible` et son validateur) : le message vit dans la contrainte, la règle dans le validateur.
+
+          Règle de pouce : une règle sur une seule valeur, réutilisable → contrainte personnalisée ; une règle qui regarde plusieurs propriétés d'**un** objet → méthode de rappel.
+      - cle: messages
+        libelle: "Les messages"
+        aide: "Où écris-tu les messages d'erreur ? Que se passe-t-il si tu n'en écris pas ? Comment une violation peut-elle citer la valeur refusée ou un nombre ?"
+        correction: |
+          - Sans message, Symfony affiche son message par défaut, qui ne dit pas ce que ton application attend. On écrit donc **chaque message** en français, sur la contrainte (`message:`), ou dans la violation construite à la main.
+          - Un message peut contenir des **repères** (`{{ minimum }}`) que `setParameter()` remplace par une valeur : le texte reste écrit à un seul endroit.
+          - Une violation se rattache à un champ avec `atPath()` : sans cela, elle serait rattachée à l'objet entier et n'apparaîtrait pas à côté du champ.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Entity/Ticket.php` (modifié), `src/Validator/TitreLisible.php` et `TitreLisibleValidator.php` (créés), `src/Form/ClotureTicketType.php` (créé), `src/Controller/TicketController.php` (modifié), une migration, `templates/ticket/cloture.html.twig` (créé), `templates/ticket/_ticket.html.twig` (modifié).
+
+          1. La contrainte `TitreLisible` et son validateur, essayés sur la création d'un ticket.
+          2. Les propriétés `resolution` et `resoluLe`, la migration (relue, puis `doctrine:schema:update --dump-sql --complete`).
+          3. La règle `NotBlank` du groupe `cloture`.
+          4. La méthode de rappel sur les dates.
+          5. Le formulaire, la route et le gabarit de clôture.
+          6. Le lien « Clôturer » dans la liste des tickets.
+          7. Lancer les tests.
+  - id: s07-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : des règles qui s'appliquent au bon moment"
+    duree: 50
+    fichier: demonstration-1.md
+    programme: [validation.objets, validation.portees, validation.groupes, validation.methodes-rappel]
+  - id: s07-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : une contrainte à soi et la séquence de groupes"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [validation.contraintes, validation.violations, validation.sequence-groupes, injection.cablage-automatique]
+  - id: s07-exercice
+    type: exercice
+    titre: "Exercice : clôturer un ticket"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/ValidationAvancee
+    programme: [validation.groupes, validation.sequence-groupes, validation.methodes-rappel, validation.violations, validation.contraintes, formulaires.traitement]

@@ -1,0 +1,55 @@
+# Câblage de la plateforme de formation (src/Formation).
+# Chargé par src/Formation/FormationKernel.php, le seul noyau qui le lit : le junior ne touche ni à ce
+# fichier ni à ce noyau, et son App\Kernel, son config/services.yaml, ses routes et ses packages ne
+# sont jamais chargés par la plateforme.
+parameters:
+    # Valeur par défaut ; l'environnement de test la surcharge dans config/formation/test/.
+    formation.dossier_contenu: '%kernel.project_dir%/contenu'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\Formation\:
+        resource: '../../src/Formation/'
+        exclude:
+            # Le noyau lui-même, et le point d'entrée de bin/exercice, construit avant le noyau (cf. la classe).
+            - '../../src/Formation/FormationKernel.php'
+            - '../../src/Formation/Exercice/PointDEntree.php'
+
+    App\Formation\Contenu\ChargeurCatalogue:
+        arguments:
+            $dossierContenu: '%formation.dossier_contenu%'
+            $dossierProjet: '%kernel.project_dir%'
+
+    App\Formation\Contenu\Catalogue:
+        factory: ['@App\Formation\Contenu\ChargeurCatalogue', 'charger']
+
+    App\Formation\Progression\ProgressionStore:
+        arguments:
+            $cheminBase: '%env(resolve:FORMATION_DB)%'
+
+    App\Formation\Exercice\LanceurTests:
+        arguments:
+            $dossierProjet: '%kernel.project_dir%'
+
+    # Rendu Markdown (filtre Twig markdown_to_html) : twig/extra-bundle n'est pas installé,
+    # l'extension et son moteur sont donc déclarés ici. Le HTML brut du contenu est retiré.
+    League\CommonMark\CommonMarkConverter:
+        arguments:
+            $config:
+                html_input: strip
+                allow_unsafe_links: false
+
+    Twig\Extra\Markdown\LeagueMarkdown:
+        arguments:
+            $converter: '@League\CommonMark\CommonMarkConverter'
+
+    Twig\Extra\Markdown\MarkdownRuntime:
+        arguments:
+            $converter: '@Twig\Extra\Markdown\LeagueMarkdown'
+        tags: ['twig.runtime']
+
+    Twig\Extra\Markdown\MarkdownExtension:
+        tags: ['twig.extension']

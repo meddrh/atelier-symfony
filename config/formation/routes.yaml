@@ -1,0 +1,4 @@
+# Routes de la plateforme de formation, chargées par src/Formation/FormationKernel.php (le junior ne les touche pas).
+formation:
+    resource: ../../src/Formation/Controller/
+    type: annotation

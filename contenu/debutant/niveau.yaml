@@ -1,0 +1,15 @@
+id: debutant
+nom: Débutant
+sous_titre: Les bases de Symfony 5.4, de Doctrine et de Twig
+badge:
+  id: niveau-debutant
+  nom: Niveau Débutant
+  description: "Tu as validé tous les exercices du niveau Débutant : pages, données, formulaires et commandes."
+
+sujets: [01-premieres-pages, 02-donnees, 03-formulaires, 04-console]
+
+# Blocs « hors sujet » (rappels, lectures) placés avant ou après un sujet.
+intercalaires:
+  - { avant: 01-premieres-pages, blocs: [rappel-http, rappel-architecture] }
+  - { avant: 02-donnees, blocs: [rappel-php-objet] }
+  - { apres: 04-console, blocs: [lecture-versions] }

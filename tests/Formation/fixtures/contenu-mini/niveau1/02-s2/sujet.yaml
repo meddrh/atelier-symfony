@@ -1,0 +1,13 @@
+id: 02-s2
+titre: Deuxième sujet
+badge: { id: badge-s2, nom: Deuxième badge, description: Deuxième exercice validé. }
+blocs:
+  - id: s2-preparation
+    type: preparation
+    titre: Préparer le deuxième sujet
+    duree: 15
+    fichier: preparation.md
+    programme: []
+    champs:
+      - { cle: entites, libelle: Entités et champs, aide: "Ex : Fournisseur", correction: "Fournisseur (nom)" }
+  - { id: s2-exercice, type: exercice, titre: Exercice deux, duree: 30, fichier: exercice.md, tests: tests/Formation/fixtures/exercices/Rouge, programme: [hp.doctrine] }

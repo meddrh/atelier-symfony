@@ -1,0 +1,12 @@
+#!/usr/bin/env php
+<?php
+
+// Console de la plateforme de formation (commandes « formation:… »), sur son noyau indépendant.
+// Les commandes de l'application du junior restent dans bin/console.
+
+use App\Formation\FormationKernel;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+
+require dirname(__DIR__).'/vendor/autoload.php';
+
+exit((new Application(FormationKernel::parDefaut()))->run());

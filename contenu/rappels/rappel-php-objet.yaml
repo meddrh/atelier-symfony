@@ -1,0 +1,6 @@
+id: rappel-php-objet
+type: rappel
+titre: "Rappel : PHP objet, espaces de noms, interfaces et attributs"
+duree: 15
+fichier: rappel-php-objet.md
+programme: [php.poo, php.namespaces, php.interfaces, php.classes-abstraites, php.api]

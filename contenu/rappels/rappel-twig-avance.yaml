@@ -1,0 +1,6 @@
+id: rappel-twig-avance
+type: rappel
+titre: "Rappel : filtres, fonctions, inclusions, rendu d'un contrôleur et débogage de Twig"
+duree: 15
+fichier: rappel-twig-avance.md
+programme: [twig.filtres-fonctions, twig.inclusions, twig.rendu-controleur, twig.debogage]

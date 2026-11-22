@@ -1,0 +1,69 @@
+id: 08-session-traductions
+titre: La session et les traductions
+badge:
+  id: polyglotte
+  nom: Polyglotte
+  description: "Tu as gardé un choix du visiteur en session sans lui faire confiance, et fait parler ta page en deux langues, pluriels compris, avec la langue dans l'adresse."
+blocs:
+  - id: s08-preparation
+    type: preparation
+    titre: "Préparer la liste des tickets en deux langues"
+    duree: 15
+    fichier: preparation.md
+    programme: [controleurs.session, twig.traductions, routing.locale]
+    champs:
+      - cle: session
+        libelle: "Le filtre en session"
+        aide: "Que mémorises-tu, et sous quelle clé ? Quand le lis-tu, quand l'écris-tu ? Que peut contenir la session d'autre que ce que tu y as mis, et que fais-tu alors ?"
+        correction: |
+          - On mémorise **le statut choisi** (`ouvert`, `en_cours`, `resolu` ou `tous`), sous une clé nommée une seule fois (`tickets.statut`).
+          - **Écriture** : quand le visiteur choisit un filtre dans l'adresse (`?statut=…`). **Lecture** : quand l'adresse n'en contient pas.
+          - Une valeur de session peut être absente, ancienne, ou d'un **autre type** (une liste, un nombre). Ce qu'on y lit se **revérifie** toujours contre la liste des statuts permis (liste blanche) ; sinon on prend le **filtre par défaut** (`ouvert`). Jamais d'erreur 500 pour une valeur inattendue.
+          - Même vérification pour la valeur de l'adresse : `?statut=pirate` revient au filtre par défaut.
+      - cle: langue
+        libelle: "La langue dans l'adresse"
+        aide: "Où met-on la langue ? Quelles langues acceptes-tu, et que fais-tu pour les autres ? Que se passe-t-il pour `/tickets` sans langue ?"
+        correction: |
+          - La langue est un **préfixe** de l'adresse : `/{_locale}/tickets`. `_locale` est un paramètre spécial : c'est la langue de la requête.
+          - On **limite** `_locale` aux langues proposées (`fr|en`) avec une contrainte sur le paramètre : `/de/tickets` répond 404.
+          - `/tickets` sans langue **redirige** vers `/fr/tickets` : une seule adresse « officielle » par page et par langue.
+          - La langue de la page est aussi déclarée dans le document (`<html lang="…">`).
+      - cle: phrases
+        libelle: "Les phrases et leurs clés"
+        aide: "Écris les phrases du compteur pour 0, 1 et 3 tickets ouverts, en français et en anglais. Que change le statut dans la phrase ? Comment nommes-tu les clés ?"
+        correction: |
+          - Français : « Aucun ticket ouvert », « 1 ticket ouvert », « 3 tickets ouverts » ; anglais : « No open tickets », « 1 open ticket », « 3 open tickets ». Le **statut** change aussi les mots (« résolus », « en cours », « in progress »), donc une phrase par statut.
+          - Une phrase **avec pluriel** est un message ICU : `{nombre, plural, =0 {…} one {…} other {…}}`. Le cas exact `=0` est nécessaire en français, où 0 suit la règle du singulier.
+          - Les clés sont **hiérarchiques** (`ticket.compteur.ouvert`, `ticket.statut.resolu`) et **identiques dans les deux langues** : un trou en anglais retombe silencieusement sur le français.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `translations/messages+intl-icu.fr.yaml` et `.en.yaml` (complétés), `src/Repository/TicketRepository.php` (modifié), `src/Controller/TicketController.php` (modifié), `templates/ticket/liste.html.twig` (créé), `templates/materiel/fiche.html.twig` (modifié).
+
+          1. Les deux catalogues, d'abord les phrases, avec les mêmes clés.
+          2. La route avec `_locale` limité, et la redirection de `/tickets`.
+          3. La requête de dépôt : tickets d'un statut, du plus récent au plus ancien.
+          4. Le contrôleur : lecture, vérification et mémorisation du filtre.
+          5. Le gabarit : compteur, statuts traduits, liens de filtre.
+          6. Le lien depuis la fiche du matériel.
+          7. Lancer les tests.
+  - id: s08-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : le filtre des matériels, gardé en session"
+    duree: 40
+    fichier: demonstration-1.md
+    programme: [controleurs.session, controleurs.flash, controleurs.requete, http.cookies, http.requete]
+  - id: s08-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : une page en deux langues"
+    duree: 35
+    fichier: demonstration-2.md
+    programme: [twig.traductions, routing.locale, http.langue, divers.internationalisation, routing.restrictions, twig.heritage]
+  - id: s08-exercice
+    type: exercice
+    titre: "Exercice : la liste des tickets, par statut, en deux langues"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/SessionTraductions
+    programme: [controleurs.session, twig.traductions, routing.locale, http.langue, divers.internationalisation]

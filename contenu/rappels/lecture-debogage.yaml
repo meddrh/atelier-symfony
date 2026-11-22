@@ -1,0 +1,6 @@
+id: lecture-debogage
+type: lecture
+titre: "Lecture : déboguer une application Symfony"
+duree: 15
+fichier: lecture-debogage.md
+programme: [divers.debogage, twig.debogage, routing.debogage, divers.web-profiler]

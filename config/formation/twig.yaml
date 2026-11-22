@@ -1,0 +1,9 @@
+# Seuls les gabarits de la plateforme (templates/formation/) sont connus de son Twig : les noms de gabarit
+# y sont relatifs à ce dossier (« base.html.twig », « lecon/texte.html.twig »). Ceux du junior, dans templates/,
+# ne sont ni lus ni compilés au démarrage.
+twig:
+    default_path: '%kernel.project_dir%/templates/formation'
+
+when@test:
+    twig:
+        strict_variables: true

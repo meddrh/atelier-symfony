@@ -1,0 +1,70 @@
+id: 13-services-avances
+titre: Les services avancés
+badge:
+  id: architecte-des-services
+  nom: Architecte des services
+  description: "Tu as composé des services par étiquette, les as décorés, et tu as écrit une passe de compilation qui vérifie ton application au démarrage : l'historique des affectations sort maintenant en CSV, sans risque de formule."
+blocs:
+  - id: s13-preparation
+    type: preparation
+    titre: "Préparer l'export CSV de l'historique, ses colonnes et sa passe de compilation"
+    duree: 15
+    fichier: preparation.md
+    programme: [injection.etiquettes, injection.passes-compilation]
+    champs:
+      - cle: colonnes
+        libelle: "Les colonnes : qui connaît la liste, qui connaît chaque colonne"
+        aide: "Si on ajoute demain une sixième colonne, quels fichiers faut-il modifier ? Qui écrit l'en-tête du fichier ? Comment le service qui écrit le fichier obtient-il la liste, sans la nommer ?"
+        correction: |
+          - Chaque colonne est **une petite classe** qui sait donner son **en-tête** et la **valeur** d'une ligne d'historique, et qui implémente une interface commune. Ajouter une colonne, c'est **ajouter une classe** : ni le contrôleur ni le service d'écriture ne changent.
+          - Chaque classe porte l'**étiquette** `app.colonne_historique` et un **rang** (`ordre`) par `#[AutoconfigureTag]`. On espace les rangs (10, 20, 30…) pour pouvoir en insérer un sans tout renuméroter.
+          - Le service d'écriture ne **connaît aucune colonne** : il reçoit une liste de colonnes dans son constructeur, écrit l'en-tête à partir d'elles, puis une ligne par ligne d'historique.
+          - La liste n'est pas demandée par `#[TaggedIterator]` ici : un itérable ne garantit **aucun ordre** de rang. C'est une passe de compilation qui fabrique la liste, **triée**, et la donne au service.
+      - cle: passe
+        libelle: "La passe de compilation : quand elle tourne, ce qu'elle vérifie, ce qu'elle fait"
+        aide: "À quel moment l'erreur d'une colonne sans rang doit-elle apparaître : au démarrage, ou quand quelqu'un exporte ? Que fait la passe de la liste des colonnes ? Comment éprouver une passe sans lancer toute l'application ?"
+        correction: |
+          - La passe tourne **une seule fois**, quand le conteneur est construit, puis son résultat est **mis en cache** : elle ne coûte rien à chaque requête.
+          - Elle **vérifie** que chaque service de l'étiquette a un `ordre` numérique. Sinon elle lève une `InvalidArgumentException` dont le message **nomme le service** : l'application ne démarre pas. Une erreur de configuration doit se voir **tout de suite**, pas le jour où un gestionnaire clique sur « Exporter ».
+          - Elle **trie** les colonnes par rang, **numériquement** (comparer des chaînes mettrait « 100 » avant « 30 »), et donne la liste, sous forme de **références**, à l'argument `$colonnes` de la définition du service d'écriture.
+          - Elle s'éprouve **sans noyau** : un `ContainerBuilder` où l'on enregistre quelques définitions étiquetées, la passe, et un `compile()`. Pour prouver qu'elle est **vraiment branchée**, un second test démarre un noyau qui contient une colonne sans rang et attend le refus.
+          - Elle est enregistrée dans `Kernel::build()`, avec celle de la démonstration.
+      - cle: formules
+        libelle: "Le fichier sera ouvert dans un tableur : que peut-il arriver ?"
+        aide: "Un visiteur saisit un titre de matériel. Ce titre finit dans une cellule. Que se passe-t-il si le titre est « =1+1 » ? Et s'il contient un point-virgule, un guillemet ou un retour à la ligne ? Où traiter ces deux problèmes : dans chaque colonne ou une seule fois ?"
+        correction: |
+          - Un tableur lit comme une **formule** toute cellule qui commence par `=`, `+`, `-` ou `@` (et par une tabulation ou un retour chariot, selon la liste de l'OWASP). Une formule peut appeler une adresse extérieure ou lancer une commande : c'est l'**injection de formule**. Le titre n'est plus une donnée, c'est du code.
+          - Parade : une **apostrophe en tête** (`'=1+1`). Le tableur affiche le texte tel quel. On ne touche **que** le premier caractère : `Écran a=b` reste intact.
+          - Le séparateur ou le guillemet dans une valeur est un **autre** problème, celui du **format** : on ne le résout **pas** à la main, on utilise `fputcsv()`, qui met entre guillemets ce qu'il faut et double les guillemets. Sans caractère d'échappement (`''`), une barre oblique inverse reste une barre oblique inverse.
+          - Les deux traitements se font **une seule fois**, dans le service d'écriture, pour **toutes** les colonnes : si chaque colonne y pensait, la sixième l'oublierait. La neutralisation elle-même est une petite classe partagée (`CelluleCsv`, déjà écrite pour l'export des matériels) : un export qui aurait sa propre copie, ou qui l'oublierait, laisserait passer la formule.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Export/ColonneHistorique.php` et cinq colonnes, `src/Export/ExportHistoriqueInterface.php`, `src/Export/ExportHistorique.php`, `src/Export/ExportHistoriqueAvecBom.php`, `src/DependencyInjection/Compiler/ColonnesHistoriquePass.php`, `src/Kernel.php` (modifié), `src/Repository/HistoriqueAffectationRepository.php` (modifié), `src/Controller/HistoriqueController.php`, `config/services.yaml` et `config/packages/security.yaml` (modifiés), un lien dans `templates/materiel/historique.html.twig`.
+
+          1. L'interface, une colonne, la passe et son test sur un conteneur minimal.
+          2. Les quatre autres colonnes, l'enregistrement de la passe dans `Kernel::build()`.
+          3. Le service d'écriture : l'en-tête, les lignes, puis la neutralisation des formules.
+          4. Le dépôt, le contrôleur, la règle d'accès.
+          5. Le décorateur du BOM et sa déclaration (avec l'alias).
+          6. Lancer les tests ; ouvrir le fichier dans un tableur avec un matériel nommé « =1+1 ».
+  - id: s13-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : des formats d'export réunis par une étiquette"
+    duree: 30
+    fichier: demonstration-1.md
+    programme: [injection.etiquettes, injection.cablage-automatique]
+  - id: s13-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : une fabrique, un décorateur et une passe de compilation"
+    duree: 30
+    fichier: demonstration-2.md
+    programme: [injection.fabriques, injection.decoration, injection.passes-compilation, architecture.surcharge]
+  - id: s13-exercice
+    type: exercice
+    titre: "Exercice : l'export CSV de l'historique, sans injection de formule"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/ServicesAvances
+    programme: [injection.etiquettes, injection.decoration, injection.passes-compilation, injection.fabriques, architecture.surcharge]

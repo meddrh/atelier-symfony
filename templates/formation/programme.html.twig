@@ -1,0 +1,28 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Programme · Atelier Symfony{% endblock %}
+
+{% block contenu %}
+    <h1 class="titre-page">Programme</h1>
+    <p class="sous-titre">{{ nbCouvertes }} / {{ nbLignes }} lignes couvertes. Une ligne est couverte quand un bloc qui la traite est terminé : rien à cocher.</p>
+
+    {% for section in sections %}
+        <details class="section"{% if loop.first %} open{% endif %}>
+            <summary>
+                <span class="section__titre">{{ section.titre }}</span>
+                <span class="section__compteur">{{ section.couvertes }} / {{ section.lignes|length }}</span>
+            </summary>
+            {% if section.horsProgramme %}
+                <p class="section__note">Notions utiles à ton travail, absentes du programme de la certification.</p>
+            {% endif %}
+            <ul class="lignes">
+                {% for ligne in section.lignes %}
+                    <li class="ligne{% if ligne.couverte %} ligne--couverte{% endif %}">
+                        <span class="ligne__marque" aria-hidden="true">{{ ligne.couverte ? '✓' : '' }}</span>
+                        <span>{{ ligne.libelle }}<span class="sr-only"> : {{ ligne.couverte ? 'couverte' : 'pas encore couverte' }}</span></span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </details>
+    {% endfor %}
+{% endblock %}

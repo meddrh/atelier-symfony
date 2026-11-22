@@ -1,0 +1,6 @@
+id: rappel-http
+type: rappel
+titre: "Rappel : requête, réponse, méthodes et codes HTTP"
+duree: 15
+fichier: rappel-http.md
+programme: [http.client-serveur, http.requete, http.reponse, http.methodes, http.codes]

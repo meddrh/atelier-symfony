@@ -1,0 +1,6 @@
+id: rappel-a
+type: rappel
+titre: Rappel HTTP
+duree: 15
+fichier: rappel-a.md
+programme: [http.requete]

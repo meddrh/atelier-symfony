@@ -1,0 +1,30 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    # Servira au sujet 14 (envoi d'e-mails) : valeur par défaut (aucun envoi), sinon le démarrage échouerait sans la variable. .env.test fixe la même valeur. Ne la supprime pas.
+    env(MAILER_DSN): 'null://null'
+    # Servira au sujet 15 (verrous) : un fichier du système, valeur par défaut pour la même raison. .env.test fixe la même valeur. Ne la supprime pas.
+    env(LOCK_DSN): 'flock'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            # La plateforme a son propre noyau (src/Formation/FormationKernel.php) : ne pas la déclarer ici.
+            - '../src/Formation/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones

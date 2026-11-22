@@ -1,0 +1,77 @@
+id: 15-services-externes-cache-verrou
+titre: Les services externes, le cache et le verrou
+badge:
+  id: maitre-du-temps
+  nom: Maître du temps
+  description: "Tu as appelé un service externe sans jamais dépendre de sa bonne santé, gardé une réponse en mémoire le temps qu'il faut, appris au navigateur à ne pas retélécharger ce qui n'a pas changé, et empêché deux archivages de tourner en même temps."
+blocs:
+  - id: s15-preparation
+    type: preparation
+    titre: "Préparer l'ETag de l'export et l'archivage sous verrou : ce qui change, ce qui peut tomber en panne"
+    duree: 15
+    fichier: preparation.md
+    programme: [divers.lock, http.httpclient, cache-http.validation]
+    champs:
+      - cle: etag
+        libelle: "L'ETag de l'export : de quoi le calculer, et quand répondre 304"
+        aide: "Qu'est-ce qui peut changer dans le CSV, et pas seulement dans l'historique ? Quelle valeur change forcément quand le fichier change ? Que doit contenir la requête du navigateur pour que tu répondes 304, et que doit-il rester de la réponse ? Dans quel ordre mettre le contrôle des droits et le contrôle de l'ETag ?"
+        correction: |
+          - L'**ETag** est l'étiquette de « cette version » de l'export. S'il n'a pas changé depuis la dernière fois, le navigateur n'a pas besoin de retélécharger le fichier.
+          - Le CSV ne contient pas que l'historique : il contient des **noms de matériels et d'utilisateurs**, qu'on peut renommer sans ajouter une seule ligne d'historique. Un résumé de l'historique (nombre de lignes, dernière date, dernier numéro) ne voit pas ces changements : il répondrait **304** alors que le fichier a changé. Une étiquette fausse est pire que pas d'étiquette.
+          - Seule une valeur calculée sur le **contenu du fichier** est toujours juste : l'ETag est l'**empreinte** (`md5` ou `sha1`) du CSV généré, entre guillemets. On écrit le fichier dans un flux temporaire (`php://temp`, en mémoire jusqu'à 2 Mo puis dans un fichier du système), on calcule l'empreinte par morceaux (`hash_init()`, `hash_update_stream()`), puis on recopie ce flux dans la réponse.
+          - **Le coût, assumé** : pour répondre 304, on **génère** le fichier à chaque demande. Le 304 économise le **transfert** (le navigateur ne retélécharge pas le fichier), pas le **calcul**. C'est le bon compromis ici : on préfère un calcul de trop à une réponse périmée.
+          - Le navigateur renvoie l'ETag reçu dans l'en-tête `If-None-Match`. S'il est identique : réponse **304**, **sans corps**. Sinon : le CSV complet, avec le nouvel ETag.
+          - **Les droits d'abord** : un 304 prouve que la ressource existe et n'a pas changé, c'est déjà une information. Un technicien qui connaît l'étiquette doit recevoir 403, pas 304.
+          - L'export est réservé à un compte : il ne doit **jamais** être mis en cache **public** (`private`).
+      - cle: archivage
+        libelle: "L'archivage : ce que fait la commande, dans quel ordre, et ce qui peut échouer"
+        aide: "Que doit contenir la requête envoyée à l'API ? Quelles sont toutes les façons dont l'envoi peut échouer ? Que doit voir la personne qui lance la commande, et quel code de sortie doit-elle recevoir dans chaque cas ?"
+        correction: |
+          - La commande fabrique **le même CSV que le téléchargement** (le même service, donc le même BOM et les mêmes colonnes) et l'envoie en **`POST`** au client limité de l'archivage, avec `Content-Type: text/csv`.
+          - Un envoi peut échouer de **plusieurs** façons, et chacune est un cas à part : l'API répond **500** (ou toute réponse hors de la famille 2xx), elle **ne répond pas** dans le délai, la connexion est **impossible**. Dans les trois cas : un **message clair** qui dit que l'historique n'a **pas** été archivé et qu'on peut réessayer, et un **code de sortie non nul** (un script appelant, comme une tâche planifiée, saura que ça a échoué).
+          - **Pas de trace brute** : un message d'erreur technique, des chemins de fichiers et des numéros de ligne n'aident pas la personne qui lance la commande. Le détail technique va au journal, pas à l'écran.
+          - Un succès affiche un message et rend le code `0`.
+      - cle: verrou
+        libelle: "Le verrou : ce qu'il protège, comment il s'appelle, quand il se libère"
+        aide: "Que se passe-t-il si deux archivages partent en même temps ? Comment deux processus s'entendent-ils sur « c'est déjà pris » ? Que se passe-t-il si la commande échoue ou si le processus meurt avec le verrou ?"
+        correction: |
+          - Deux archivages simultanés enverraient **deux fois** les mêmes données, ou mélangeraient des envois. Un **verrou** (composant Lock) garantit qu'**un seul** processus à la fois exécute la section protégée.
+          - Le verrou est **nommé** : `createLock('archivage-historique')`. Deux lancements qui demandent **le même nom** (sur le même stockage) se gênent ; un autre nom ne les gênerait pas. Le stockage vient du paramètre `framework.lock` (ici `LOCK_DSN` : `flock`, un fichier du système, par défaut ; le test de l'exercice le remplace par un stockage en mémoire, et garde une référence à chaque verrou créé, pour pouvoir vérifier la libération).
+          - `acquire()` sans argument est **non bloquant** : il rend `false` tout de suite si quelqu'un tient le verrou. La commande dit alors « déjà en cours » et sort avec un code non nul, sans rien envoyer. `acquire(true)` attendrait, ce qui empilerait les lancements : ce n'est pas ce qu'on veut ici.
+          - Le verrou est **rendu quoi qu'il arrive** (`try` / `finally`) : sans cela, un échec bloquerait tous les archivages suivants. Et une **durée de vie** (`createLock($nom, 300, false)`) le libère tout seul si le processus meurt sans le rendre. Le `false` du troisième argument (comme à la démonstration 3) coupe la libération **automatique** (l'objet verrou se rendrait sinon tout seul en disparaissant) : c'est alors ton `finally` qui rend le verrou. Il est facultatif ici : le test garde chaque verrou en main et voit un `release()` oublié dans les deux cas.
+      - cle: ordre
+        libelle: "Fichiers et ordre des étapes"
+        aide: "Liste les fichiers à créer ou à modifier, puis numérote les étapes en commençant par ce qui est le plus simple à vérifier."
+        correction: |
+          Fichiers : `src/Controller/HistoriqueController.php` (l'empreinte du contenu, l'ETag et le 304), `src/Command/ArchiverHistoriqueCommand.php`. La configuration des deux clients limités et le faux service externe des tests existent depuis la démonstration.
+
+          1. L'écriture du CSV dans un flux temporaire, l'empreinte, l'ETag et le 304 dans le contrôleur : on les teste sans rien d'autre.
+          2. La commande **sans** verrou : fabriquer le CSV, l'envoyer, afficher le succès.
+          3. Les échecs : l'API en panne, le délai dépassé, la connexion impossible, chacun avec son message et son code de sortie.
+          4. Le verrou autour de tout, rendu dans `finally`.
+          5. Lancer les tests ; essayer à la main avec `bin/console app:historique:archiver` (sans l'API, elle doit échouer proprement).
+  - id: s15-demo-1
+    type: demonstration
+    titre: "Démonstration, partie 1 : un client HTTP limité, la mise en cache et un faux service externe"
+    duree: 40
+    fichier: demonstration-1.md
+    programme: [http.httpclient, divers.cache]
+  - id: s15-demo-2
+    type: demonstration
+    titre: "Démonstration, partie 2 : le cache HTTP, ETag et réponse 304"
+    duree: 30
+    fichier: demonstration-2.md
+    programme: [http.cache, cache-http.types, cache-http.expiration, cache-http.validation, cache-http.client, cache-http.serveur]
+  - id: s15-demo-3
+    type: demonstration
+    titre: "Démonstration, partie 3 : un verrou sur une commande, pour qu'un seul exemplaire tourne"
+    duree: 25
+    fichier: demonstration-3.md
+    programme: [divers.lock]
+  - id: s15-exercice
+    type: exercice
+    titre: "Exercice : un ETag sur l'export et un archivage sous verrou"
+    duree: 60
+    fichier: exercice.md
+    tests: tests/Exercices/ServicesExternesCacheVerrou
+    programme: [http.httpclient, cache-http.validation, divers.lock]

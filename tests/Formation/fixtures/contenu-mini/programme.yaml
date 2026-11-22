@@ -1,0 +1,11 @@
+sections:
+  - id: http
+    titre: HTTP
+    lignes:
+      - { id: http.requete, libelle: Requête HTTP }
+      - { id: http.codes, libelle: Codes de statut }
+  - id: hors-programme
+    titre: "Hors programme : Doctrine, API Platform"
+    hors_programme: true
+    lignes:
+      - { id: hp.doctrine, libelle: Doctrine ORM }

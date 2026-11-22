@@ -1,0 +1,221 @@
+# Programme de référence : certification Symfony 5 (annexe A de la spec), plus la section hors programme.
+# Une ligne = un identifiant « section.slug ». Une ligne non citée par un bloc est un trou à combler.
+sections:
+  - id: php
+    titre: "PHP (API jusqu'à la version 8.1)"
+    lignes:
+      - { id: php.api, libelle: "Fonctions et classes de l'API PHP, jusqu'à la version 8.1" }
+      - { id: php.poo, libelle: "Programmation orientée objet" }
+      - { id: php.namespaces, libelle: "Espaces de noms" }
+      - { id: php.interfaces, libelle: "Interfaces" }
+      - { id: php.fonctions-anonymes, libelle: "Fonctions anonymes" }
+      - { id: php.classes-abstraites, libelle: "Classes abstraites" }
+      - { id: php.exceptions, libelle: "Exceptions" }
+      - { id: php.traits, libelle: "Traits" }
+      - { id: php.extensions, libelle: "Extensions PHP" }
+      - { id: php.spl, libelle: "Bibliothèque standard PHP (SPL)" }
+
+  - id: http
+    titre: "HTTP"
+    lignes:
+      - { id: http.client-serveur, libelle: "Fonctionnement client et serveur" }
+      - { id: http.codes, libelle: "Codes de statut" }
+      - { id: http.requete, libelle: "Requête HTTP" }
+      - { id: http.reponse, libelle: "Réponse HTTP" }
+      - { id: http.methodes, libelle: "Méthodes HTTP" }
+      - { id: http.cookies, libelle: "Cookies" }
+      - { id: http.cache, libelle: "Cache HTTP : principes" }
+      - { id: http.negociation, libelle: "Négociation de contenu" }
+      - { id: http.langue, libelle: "Détection de la langue du visiteur" }
+      - { id: http.httpclient, libelle: "Composant HttpClient" }
+
+  - id: architecture
+    titre: "Architecture de Symfony"
+    lignes:
+      - { id: architecture.flex, libelle: "Symfony Flex" }
+      - { id: architecture.licence, libelle: "Licence" }
+      - { id: architecture.composants, libelle: "Composants" }
+      - { id: architecture.bridges, libelle: "Ponts vers les bibliothèques tierces" }
+      - { id: architecture.organisation, libelle: "Organisation du code" }
+      - { id: architecture.traitement-requete, libelle: "Traitement d'une requête" }
+      - { id: architecture.exceptions, libelle: "Gestion des exceptions" }
+      - { id: architecture.evenements, libelle: "Composant EventDispatcher et événements du noyau" }
+      - { id: architecture.bonnes-pratiques, libelle: "Bonnes pratiques" }
+      - { id: architecture.versions, libelle: "Calendrier des versions publiées" }
+      - { id: architecture.compatibilite, libelle: "Promesse de rétrocompatibilité" }
+      - { id: architecture.deprecations, libelle: "Dépréciations" }
+      - { id: architecture.surcharge, libelle: "Surcharge du framework" }
+      - { id: architecture.psr, libelle: "Recommandations PSR" }
+      - { id: architecture.nommage, libelle: "Conventions de nommage" }
+
+  - id: controleurs
+    titre: "Contrôleurs"
+    lignes:
+      - { id: controleurs.conventions, libelle: "Conventions des contrôleurs" }
+      - { id: controleurs.abstract-controller, libelle: "Classe AbstractController" }
+      - { id: controleurs.requete, libelle: "Lecture de la requête" }
+      - { id: controleurs.reponse, libelle: "Construction de la réponse" }
+      - { id: controleurs.cookies, libelle: "Cookies" }
+      - { id: controleurs.session, libelle: "Session" }
+      - { id: controleurs.flash, libelle: "Messages flash" }
+      - { id: controleurs.redirections-http, libelle: "Redirections HTTP" }
+      - { id: controleurs.redirections-internes, libelle: "Redirections internes" }
+      - { id: controleurs.erreur-404, libelle: "Page introuvable (erreur 404)" }
+      - { id: controleurs.televersement, libelle: "Téléversement de fichiers" }
+      - { id: controleurs.controleurs-internes, libelle: "Contrôleurs internes" }
+
+  - id: routing
+    titre: "Routage"
+    lignes:
+      - { id: routing.formats, libelle: "Définition des routes : YAML, XML, PHP et attributs" }
+      - { id: routing.restrictions, libelle: "Restrictions sur les paramètres" }
+      - { id: routing.valeurs-par-defaut, libelle: "Valeurs par défaut des paramètres" }
+      - { id: routing.generation-url, libelle: "Génération d'URL" }
+      - { id: routing.redirections, libelle: "Redirections de routes" }
+      - { id: routing.attributs-speciaux, libelle: "Attributs spéciaux d'une route" }
+      - { id: routing.domaine, libelle: "Restriction par nom de domaine" }
+      - { id: routing.conditions, libelle: "Conditions d'accès à une route" }
+      - { id: routing.methodes, libelle: "Restriction par méthode HTTP" }
+      - { id: routing.locale, libelle: "Locale dans les routes" }
+      - { id: routing.debogage, libelle: "Débogage des routes" }
+
+  - id: twig
+    titre: "Twig (jusqu'à la version 3.3)"
+    lignes:
+      - { id: twig.syntaxe, libelle: "Syntaxe de Twig" }
+      - { id: twig.echappement, libelle: "Échappement automatique" }
+      - { id: twig.heritage, libelle: "Héritage de gabarits" }
+      - { id: twig.globales, libelle: "Variables globales" }
+      - { id: twig.filtres-fonctions, libelle: "Filtres et fonctions" }
+      - { id: twig.inclusions, libelle: "Inclusion de gabarits" }
+      - { id: twig.boucles-conditions, libelle: "Boucles et conditions" }
+      - { id: twig.urls, libelle: "Génération d'URL dans un gabarit" }
+      - { id: twig.rendu-controleur, libelle: "Rendu d'un contrôleur depuis un gabarit" }
+      - { id: twig.traductions, libelle: "Traductions et pluriel" }
+      - { id: twig.interpolation, libelle: "Interpolation de chaînes" }
+      - { id: twig.ressources, libelle: "Ressources statiques : images, feuilles de style, scripts" }
+      - { id: twig.debogage, libelle: "Débogage dans Twig" }
+
+  - id: formulaires
+    titre: "Formulaires"
+    lignes:
+      - { id: formulaires.creation, libelle: "Création d'un formulaire" }
+      - { id: formulaires.traitement, libelle: "Traitement de la soumission" }
+      - { id: formulaires.types, libelle: "Types de formulaire" }
+      - { id: formulaires.rendu, libelle: "Rendu d'un formulaire" }
+      - { id: formulaires.themes, libelle: "Thèmes de formulaire" }
+      - { id: formulaires.csrf, libelle: "Protection contre les requêtes forgées (CSRF)" }
+      - { id: formulaires.televersement, libelle: "Téléversement de fichiers dans un formulaire" }
+      - { id: formulaires.types-integres, libelle: "Types de champs intégrés" }
+      - { id: formulaires.transformateurs, libelle: "Transformateurs de données" }
+      - { id: formulaires.evenements, libelle: "Événements de formulaire" }
+      - { id: formulaires.extensions, libelle: "Extensions de types de formulaire" }
+
+  - id: validation
+    titre: "Validation"
+    lignes:
+      - { id: validation.objets, libelle: "Validation d'objets" }
+      - { id: validation.contraintes, libelle: "Contraintes intégrées" }
+      - { id: validation.portees, libelle: "Portées d'une contrainte : propriété, méthode, classe" }
+      - { id: validation.groupes, libelle: "Groupes de validation" }
+      - { id: validation.sequence-groupes, libelle: "Séquence de groupes" }
+      - { id: validation.methodes-rappel, libelle: "Contraintes par méthode de rappel" }
+      - { id: validation.violations, libelle: "Construction de violations" }
+
+  - id: injection
+    titre: "Injection de dépendances"
+    lignes:
+      - { id: injection.conteneur, libelle: "Conteneur de services" }
+      - { id: injection.services-integres, libelle: "Services intégrés" }
+      - { id: injection.parametres, libelle: "Paramètres" }
+      - { id: injection.enregistrement, libelle: "Enregistrement d'un service" }
+      - { id: injection.decoration, libelle: "Décoration de services" }
+      - { id: injection.etiquettes, libelle: "Étiquettes de services" }
+      - { id: injection.configuration-semantique, libelle: "Configuration sémantique" }
+      - { id: injection.fabriques, libelle: "Fabriques de services" }
+      - { id: injection.passes-compilation, libelle: "Passes de compilation" }
+      - { id: injection.cablage-automatique, libelle: "Câblage automatique des services" }
+
+  - id: securite
+    titre: "Sécurité"
+    lignes:
+      - { id: securite.authentification, libelle: "Authentification" }
+      - { id: securite.autorisation, libelle: "Autorisation" }
+      - { id: securite.configuration, libelle: "Configuration de la sécurité" }
+      - { id: securite.fournisseurs, libelle: "Fournisseurs d'utilisateurs" }
+      - { id: securite.pare-feu, libelle: "Pare-feu" }
+      - { id: securite.utilisateurs, libelle: "Utilisateurs" }
+      - { id: securite.hachage, libelle: "Hachage des mots de passe" }
+      - { id: securite.roles, libelle: "Rôles" }
+      - { id: securite.controle-acces, libelle: "Contrôle d'accès" }
+      - { id: securite.authentificateurs, libelle: "Authentificateurs" }
+      - { id: securite.droits, libelle: "Contrôle des droits" }
+      - { id: securite.strategies, libelle: "Stratégies de décision" }
+
+  - id: cache-http
+    titre: "Cache HTTP"
+    lignes:
+      - { id: cache-http.types, libelle: "Types de cache" }
+      - { id: cache-http.expiration, libelle: "Expiration" }
+      - { id: cache-http.validation, libelle: "Validation" }
+      - { id: cache-http.client, libelle: "Cache côté client" }
+      - { id: cache-http.serveur, libelle: "Cache côté serveur" }
+      - { id: cache-http.esi, libelle: "Inclusions ESI" }
+
+  - id: console
+    titre: "Console"
+    lignes:
+      - { id: console.commandes-integrees, libelle: "Commandes intégrées" }
+      - { id: console.commandes-perso, libelle: "Commandes personnalisées" }
+      - { id: console.configuration, libelle: "Configuration d'une commande" }
+      - { id: console.options-arguments, libelle: "Options et arguments" }
+      - { id: console.entree-sortie, libelle: "Entrée et sortie de la console" }
+      - { id: console.utilitaires, libelle: "Méthodes utilitaires de la console" }
+      - { id: console.evenements, libelle: "Événements de la console" }
+      - { id: console.verbosite, libelle: "Niveaux de verbosité" }
+
+  - id: tests
+    titre: "Tests automatisés"
+    lignes:
+      - { id: tests.unitaires, libelle: "Tests unitaires avec PHPUnit" }
+      - { id: tests.fonctionnels, libelle: "Tests fonctionnels avec PHPUnit" }
+      - { id: tests.client, libelle: "Client de test" }
+      - { id: tests.crawler, libelle: "Crawler" }
+      - { id: tests.profiler, libelle: "Profileur" }
+      - { id: tests.acces-framework, libelle: "Accès au framework depuis un test" }
+      - { id: tests.configuration-client, libelle: "Configuration du client de test" }
+      - { id: tests.introspection, libelle: "Examen de la requête et de la réponse" }
+      - { id: tests.phpunit-bridge, libelle: "Passerelle PHPUnit de Symfony" }
+      - { id: tests.code-deprecie, libelle: "Détection du code déprécié" }
+
+  - id: divers
+    titre: "Divers"
+    lignes:
+      - { id: divers.dotenv, libelle: "Composant Dotenv" }
+      - { id: divers.expression-language, libelle: "Composant ExpressionLanguage" }
+      - { id: divers.erreurs, libelle: "Gestion des erreurs" }
+      - { id: divers.debogage, libelle: "Débogage" }
+      - { id: divers.deploiement, libelle: "Déploiement" }
+      - { id: divers.cache, libelle: "Composant Cache" }
+      - { id: divers.process, libelle: "Composant Process" }
+      - { id: divers.serializer, libelle: "Composant Serializer" }
+      - { id: divers.messenger, libelle: "Composant Messenger" }
+      - { id: divers.mime, libelle: "Composant Mime" }
+      - { id: divers.mailer, libelle: "Composant Mailer" }
+      - { id: divers.filesystem, libelle: "Composant Filesystem" }
+      - { id: divers.finder, libelle: "Composant Finder" }
+      - { id: divers.lock, libelle: "Composant Lock" }
+      - { id: divers.web-profiler, libelle: "Web Profiler" }
+      - { id: divers.collecteurs, libelle: "Collecteurs de données" }
+      - { id: divers.internationalisation, libelle: "Internationalisation et composant Intl" }
+      - { id: divers.runtime, libelle: "Composant Runtime" }
+
+  - id: hp
+    titre: "Hors programme : Doctrine, API Platform"
+    hors_programme: true
+    lignes:
+      - { id: hp.doctrine-entites, libelle: "Doctrine ORM : entités et correspondance avec la base" }
+      - { id: hp.doctrine-depots, libelle: "Doctrine ORM : dépôts et requêtes" }
+      - { id: hp.doctrine-migrations, libelle: "Doctrine : migrations de la base" }
+      - { id: hp.doctrine-relations, libelle: "Doctrine ORM : relations entre entités" }
+      - { id: hp.api-platform-groupes, libelle: "API Platform : groupes de sérialisation" }

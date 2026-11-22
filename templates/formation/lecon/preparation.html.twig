@@ -1,0 +1,57 @@
+{% extends 'lecon/base.html.twig' %}
+{% import '_blocs.html.twig' as b %}
+
+{# Fiche de préparation : à remplir, puis comparée à la fiche corrigée (miroir, rien n'est noté). #}
+{% block lecon_contenu %}
+    <div class="prose">{{ texte|markdown_to_html }}</div>
+
+    {% if complete %}
+        <p class="consigne">Compare ta fiche avec la correction. Ce n'est pas noté : repère seulement ce que tu as oublié ou fait autrement, puis passe à la suite.</p>
+        <div class="comparaison">
+            <section class="comparaison__colonne" aria-labelledby="ta-fiche">
+                <h3 id="ta-fiche">Ta fiche</h3>
+                <dl>
+                    {% for champ in champs %}
+                        <dt>{{ champ.libelle }}</dt>
+                        <dd>{{ reponses[champ.cle]|default('') }}</dd>
+                    {% endfor %}
+                </dl>
+            </section>
+            <section class="comparaison__colonne" aria-labelledby="fiche-corrigee">
+                <h3 id="fiche-corrigee">Fiche corrigée</h3>
+                <dl>
+                    {% for champ in champs %}
+                        <dt>{{ champ.libelle }}</dt>
+                        <dd>{{ champ.correction }}</dd>
+                    {% endfor %}
+                </dl>
+            </section>
+        </div>
+        <div class="actions">
+            {% if peutTerminer %}
+                {{ b.terminer(bloc, reste, 'Passer à la suite') }}
+            {% else %}
+                {{ b.etat(statut) }}
+            {% endif %}
+        </div>
+    {% else %}
+        {% for erreur in erreursFiche %}
+            <p class="message message--erreur" role="alert">{{ erreur }}</p>
+        {% endfor %}
+        {% if ficheIncomplete %}
+            <p class="message message--erreur" role="alert">Remplis chaque partie de ta fiche avant de continuer.</p>
+        {% endif %}
+        <form method="post" action="{{ path('formation_fiche', {blocId: bloc.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('fiche') }}">
+            <input type="hidden" name="reste" value="{{ reste }}">
+            {% for champ in champs %}
+                <div class="champ">
+                    <label for="fiche-{{ champ.cle }}">{{ champ.libelle }}</label>
+                    {% if champ.aide %}<p class="champ__aide">{{ champ.aide }}</p>{% endif %}
+                    <textarea id="fiche-{{ champ.cle }}" name="fiche[{{ champ.cle }}]" rows="4">{{ reponses[champ.cle]|default('') }}</textarea>
+                </div>
+            {% endfor %}
+            <button class="bouton bouton--sombre" type="submit">Enregistrer ma fiche</button>
+        </form>
+    {% endif %}
+{% endblock %}
