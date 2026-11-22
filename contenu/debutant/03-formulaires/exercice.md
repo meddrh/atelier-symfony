@@ -25,6 +25,64 @@ Contraintes :
 
 Un conseil sur l'ordre : commence par les règles de validation, puis le type de formulaire, puis une seule page (l'ajout) que tu essaies dans le navigateur. Les deux autres ressemblent beaucoup à celle-là.
 
+## Squelette des fichiers
+
+Ce sujet crée une classe, le type de formulaire, et ajoute trois méthodes à `FournisseurController`. Le squelette ne te donne pas la solution : les champs du formulaire, le traitement de la requête, l'enregistrement et les messages restent à écrire. Les règles de validation de l'entité et les gabarits ne sont pas dans ce squelette (ce ne sont pas des méthodes à ajouter, ou pas des classes PHP) : tu les écris toi-même.
+
+Le type de formulaire, dans son propre fichier :
+
+```php
+<?php
+// src/Form/FournisseurType.php
+
+namespace App\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class FournisseurType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        // À toi : ajouter les champs nom, email et telephone.
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        // À toi : dire à quelle classe ce formulaire est lié.
+    }
+}
+```
+
+Les trois pages sont des méthodes **à ajouter** dans ton `FournisseurController`, à la suite de celles que tu as déjà. Ce bloc ne s'écrit pas tel quel dans un nouveau fichier :
+
+```php
+// à ajouter dans src/Controller/FournisseurController.php
+
+    #[Route('/fournisseurs/nouveau', name: 'fournisseur_nouveau')]
+    public function nouveau(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : afficher le formulaire d'ajout ; s'il est valide, enregistrer le fournisseur,
+        // annoncer le succès par un message flash et rediriger ; sinon le réafficher (code 422).
+    }
+
+    #[Route('/fournisseurs/{id}/modifier', name: 'fournisseur_modifier', requirements: ['id' => '\d+'])]
+    public function modifier(int $id, Request $request, FournisseurRepository $fournisseurRepository, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : la même chose pour un fournisseur existant, formulaire prérempli ; page introuvable si l'identifiant est inconnu.
+    }
+
+    #[Route('/fournisseurs/{id}/supprimer', name: 'fournisseur_supprimer', requirements: ['id' => '\d+'])]
+    public function supprimer(int $id, Request $request, FournisseurRepository $fournisseurRepository, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : n'accepter que la méthode POST, vérifier le jeton CSRF, supprimer, annoncer le résultat
+        // par un message flash et revenir à la liste ; page introuvable si l'identifiant est inconnu.
+    }
+```
+
+N'oublie pas les `use` en haut du fichier : `App\Entity\Fournisseur`, `App\Form\FournisseurType`, `Doctrine\ORM\EntityManagerInterface` et `Symfony\Component\HttpFoundation\Request`. Le dossier `src/Form/` donne l'espace de noms `App\Form` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

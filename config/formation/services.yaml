@@ -36,7 +36,8 @@ services:
 
     # Rendu Markdown (filtre Twig markdown_to_html) : twig/extra-bundle n'est pas installé,
     # l'extension et son moteur sont donc déclarés ici. Le HTML brut du contenu est retiré.
-    League\CommonMark\CommonMarkConverter:
+    # GitHub Flavored Markdown (et non CommonMark seul) : le contenu écrit des tableaux, que CommonMark rend en texte brut.
+    League\CommonMark\GithubFlavoredMarkdownConverter:
         arguments:
             $config:
                 html_input: strip
@@ -44,7 +45,7 @@ services:
 
     Twig\Extra\Markdown\LeagueMarkdown:
         arguments:
-            $converter: '@League\CommonMark\CommonMarkConverter'
+            $converter: '@League\CommonMark\GithubFlavoredMarkdownConverter'
 
     Twig\Extra\Markdown\MarkdownRuntime:
         arguments:

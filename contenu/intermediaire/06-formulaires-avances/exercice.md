@@ -24,6 +24,54 @@ Contraintes :
 
 Un conseil sur l'ordre : commence par la capture (c'est le plus risqué), avec le service qui existe déjà, puis les étiquettes, puis le statut et la page de modification. Essaie la capture à la main avant de lancer les tests : renomme une image en `capture.php`, et un fichier texte en `capture.png`.
 
+## Squelette des fichiers
+
+Ce sujet ne crée aucune classe : il fait évoluer `Ticket`, `TicketType` et `TicketController`, qui existent déjà. Le squelette ne donne donc que les méthodes **à ajouter** dans ces classes ; leurs corps, les propriétés, les règles de validation, le transformateur, l'événement du formulaire, les gabarits et la migration sont à toi. Les méthodes existantes qui changent (`TicketController::nouveau()`, `TicketType::buildForm()`) n'ont pas de squelette : les modifier est le travail de l'exercice.
+
+Dans `Ticket`, à côté de tes propriétés `capture` et `etiquettes` (à déclarer toi-même, avec leur colonne) :
+
+```php
+// à ajouter dans src/Entity/Ticket.php
+
+    public function getCapture(): ?string
+    {
+        // À toi : renvoyer le nom du fichier de la capture, ou null s'il n'y en a pas.
+    }
+
+    public function setCapture(?string $capture): self
+    {
+        // À toi : enregistrer le nom du fichier et renvoyer le ticket lui-même.
+    }
+
+    /** @return list<string> */
+    public function getEtiquettes(): array
+    {
+        // À toi : renvoyer la liste des étiquettes.
+    }
+
+    /** @param list<string> $etiquettes */
+    public function setEtiquettes(array $etiquettes): self
+    {
+        // À toi : enregistrer la liste et renvoyer le ticket lui-même.
+    }
+```
+
+Dans `TicketController`, la page de modification :
+
+```php
+// à ajouter dans src/Controller/TicketController.php
+
+    #[Route('/tickets/{id}/modifier', name: 'ticket_modifier', requirements: ['id' => '\d+'])]
+    public function modifier(int $id, Request $request, TicketRepository $ticketRepository, EntityManagerInterface $entityManager, RangeurDeFichiers $rangeur): Response
+    {
+        // À toi : retrouver le ticket (page introuvable s'il est inconnu), afficher le formulaire prérempli ; s'il est valide,
+        // ranger la capture s'il y en a une, enregistrer, annoncer le succès par un message flash et rediriger vers la fiche
+        // du matériel ; sinon le réafficher (code 422).
+    }
+```
+
+N'oublie pas les `use` en haut du fichier : `App\Repository\TicketRepository` et `App\Service\RangeurDeFichiers`.
+
 ## Pour lancer les tests
 
 ```bash

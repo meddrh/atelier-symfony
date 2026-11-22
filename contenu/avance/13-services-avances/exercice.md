@@ -43,6 +43,170 @@ Deux conseils :
 - **Écris d'abord la passe**, avec son test sur un conteneur minimal : c'est elle qui fait échouer le démarrage, et c'est la plus facile à vérifier seule. Une passe de compilation s'essaie sans noyau : `$conteneur = new ContainerBuilder(); $conteneur->register('colonne_a', \stdClass::class)->addTag('app.colonne_historique', ['ordre' => 10]); $conteneur->addCompilerPass(new ColonnesHistoriquePass()); $conteneur->compile();`.
 - **Une réponse en flux n'est pas lue comme les autres dans un test.** Elle est envoyée dès l'événement « réponse » : le client de test ne la garde pas. Pour lire le fichier, enveloppe l'appel : `ob_start(); $client->request('GET', '/historique/export.csv'); $corps = ob_get_clean();`.
 
+## Squelette des fichiers
+
+Ce sujet crée sept classes et deux interfaces : les contrats des colonnes et de l'export, un exemple de colonne, le service d'écriture, son décorateur, la passe de compilation et le contrôleur. Il ajoute aussi une méthode à `HistoriqueAffectationRepository`. Le squelette ne te donne pas la solution : le tri des colonnes, la vérification de leur rang, l'écriture du CSV, la neutralisation des formules et le flux de la réponse restent à écrire. Il n'y a rien pour `config/services.yaml` (l'alias et `decorates:`), pour l'appel de ta passe dans `Kernel::build()` (le noyau existe déjà, seule la méthode `build()` change de corps) ni pour le gabarit de l'historique : ce ne sont pas des classes PHP à créer.
+
+Les deux contrats, tels que la consigne les décrit :
+
+```php
+<?php
+// src/Export/ColonneHistorique.php
+
+namespace App\Export;
+
+use App\Entity\HistoriqueAffectation;
+
+interface ColonneHistorique
+{
+    public function getEntete(): string;
+
+    public function getValeur(HistoriqueAffectation $ligne): string;
+}
+```
+
+```php
+<?php
+// src/Export/ExportHistoriqueInterface.php
+
+namespace App\Export;
+
+interface ExportHistoriqueInterface
+{
+    public function ecrire($flux, iterable $lignes): void;
+}
+```
+
+Une colonne, la première, pour montrer la forme : l'attribut `#[AutoconfigureTag]` étiquette le service avec son rang. Les quatre autres colonnes sont à toi, sur le même modèle : leurs noms de classe sont libres (les tests ne les nomment pas), leurs rangs sont espacés comme la consigne le demande.
+
+```php
+<?php
+// src/Export/ColonneDate.php
+
+namespace App\Export;
+
+use App\Entity\HistoriqueAffectation;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
+
+#[AutoconfigureTag('app.colonne_historique', ['ordre' => 10])]
+class ColonneDate implements ColonneHistorique
+{
+    public function getEntete(): string
+    {
+        // À toi : l'en-tête de la colonne.
+    }
+
+    public function getValeur(HistoriqueAffectation $ligne): string
+    {
+        // À toi : la valeur de la colonne pour cette ligne, au format de la consigne.
+    }
+}
+```
+
+Le service d'écriture. Son constructeur reçoit la liste des colonnes, comme la consigne le dit :
+
+```php
+<?php
+// src/Export/ExportHistorique.php
+
+namespace App\Export;
+
+class ExportHistorique implements ExportHistoriqueInterface
+{
+    public function __construct(array $colonnes = [])
+    {
+        // À toi : garder les colonnes que la passe de compilation donnera.
+    }
+
+    public function ecrire($flux, iterable $lignes): void
+    {
+        // À toi : écrire l'en-tête, puis une ligne par ligne d'historique, comme la consigne le demande.
+    }
+}
+```
+
+Le décorateur du BOM. Il implémente la même interface que le service qu'il enveloppe, et son constructeur reçoit ce service enveloppé (c'est ce que `decorates:` lui fournira).
+
+```php
+<?php
+// src/Export/ExportHistoriqueAvecBom.php
+
+namespace App\Export;
+
+class ExportHistoriqueAvecBom implements ExportHistoriqueInterface
+{
+    public function __construct(ExportHistoriqueInterface $interieur)
+    {
+        // À toi : garder le service enveloppé.
+    }
+
+    public function ecrire($flux, iterable $lignes): void
+    {
+        // À toi : écrire le BOM une seule fois, puis laisser le service enveloppé écrire le reste.
+    }
+}
+```
+
+La passe de compilation. `CompilerPassInterface` impose `process()`, avec cette signature :
+
+```php
+<?php
+// src/DependencyInjection/Compiler/ColonnesHistoriquePass.php
+
+namespace App\DependencyInjection\Compiler;
+
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+class ColonnesHistoriquePass implements CompilerPassInterface
+{
+    public function process(ContainerBuilder $container): void
+    {
+        // À toi : trier les services étiquetés, refuser une étiquette sans rang numérique, donner la liste à l'export.
+    }
+}
+```
+
+Le contrôleur de l'export :
+
+```php
+<?php
+// src/Controller/HistoriqueController.php
+
+namespace App\Controller;
+
+use App\Export\ExportHistoriqueInterface;
+use App\Repository\HistoriqueAffectationRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class HistoriqueController extends AbstractController
+{
+    #[Route('/historique/export.csv', name: 'historique_export', methods: ['GET'])]
+    public function export(ExportHistoriqueInterface $export, HistoriqueAffectationRepository $historiqueRepository): Response
+    {
+        // À toi : contrôler le droit, puis répondre par un flux CSV avec les bons en-têtes.
+    }
+}
+```
+
+`HistoriqueAffectationRepository` existe déjà : la méthode ci-dessous est à **ajouter** dans ta classe, à la suite des autres. Ce bloc ne s'écrit pas tel quel dans un nouveau fichier.
+
+```php
+// à ajouter dans src/Repository/HistoriqueAffectationRepository.php
+
+    /**
+     * @return iterable<HistoriqueAffectation>
+     */
+    public function findTous(): iterable
+    {
+        // À toi : tout l'historique, du plus ancien au plus récent, avec ce qu'il faut charger en une seule requête.
+    }
+```
+
+Chaque fichier se range selon PSR-4 : `src/Export/` donne `App\Export`, `src/DependencyInjection/Compiler/` donne `App\DependencyInjection\Compiler`, et le nom du fichier donne le nom de la classe.
+
 ## Pour lancer les tests
 
 ```bash

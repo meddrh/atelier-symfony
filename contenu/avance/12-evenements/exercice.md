@@ -25,6 +25,164 @@ Contraintes :
 
 Un conseil sur l'ordre : écris d'abord l'abonné et teste-le **seul**, en annonçant l'événement à la main (le répartiteur est le service `event_dispatcher`), avant de toucher au contrôleur. Si tu cherches quelle valeur comparer dans `modifier()`, rappelle-toi ce que le formulaire fait à l'objet **pendant** `handleRequest()`.
 
+## Squelette des fichiers
+
+Ce sujet crée quatre classes : l'entité, son dépôt, l'événement et l'abonné. Il modifie ou ajoute aussi des méthodes à `MaterielController`. Le squelette ne te donne pas la solution : les colonnes de l'entité, la requête, l'enregistrement de la ligne et la comparaison de l'affectation dans le contrôleur restent à écrire. La migration, la configuration, les gabarits et le lien de la fiche ne sont pas dans ce squelette : ce ne sont pas des classes PHP.
+
+L'entité d'abord. Elle ne montre que son attribut de classe et son identifiant : les propriétés de la consigne (`materiel`, `ancienUtilisateur`, `nouvelUtilisateur`, `faitLe`, `auteur`), leurs relations et leurs méthodes d'accès, c'est à toi de les écrire. Tant que les colonnes manquent, il n'y a rien à mettre dans la migration.
+
+```php
+<?php
+// src/Entity/HistoriqueAffectation.php
+
+namespace App\Entity;
+
+use App\Repository\HistoriqueAffectationRepository;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: HistoriqueAffectationRepository::class)]
+class HistoriqueAffectation
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    // À toi : les propriétés et leurs colonnes, puis les méthodes d'accès.
+}
+```
+
+Le dépôt : le constructeur passe au parent le gestionnaire et la classe de l'entité, et la méthode donne l'historique d'un matériel.
+
+```php
+<?php
+// src/Repository/HistoriqueAffectationRepository.php
+
+namespace App\Repository;
+
+use App\Entity\HistoriqueAffectation;
+use App\Entity\Materiel;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<HistoriqueAffectation>
+ */
+class HistoriqueAffectationRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        // À toi : appeler le constructeur du parent, en lui donnant le gestionnaire et la classe de l'entité.
+    }
+
+    /**
+     * @return list<HistoriqueAffectation>
+     */
+    public function findDuMateriel(Materiel $materiel): array
+    {
+        // À toi : l'historique du matériel, du plus récent au plus ancien (à date égale, la ligne la plus récente d'abord).
+    }
+}
+```
+
+L'événement. Son constructeur est donné par la consigne (`new MaterielAffecteEvent($materiel, $ancien, $nouvel)`), comme les trois méthodes qui lisent ce qu'il porte.
+
+```php
+<?php
+// src/Event/MaterielAffecteEvent.php
+
+namespace App\Event;
+
+use App\Entity\Materiel;
+use App\Entity\Utilisateur;
+use Symfony\Contracts\EventDispatcher\Event;
+
+class MaterielAffecteEvent extends Event
+{
+    public function __construct(Materiel $materiel, ?Utilisateur $ancienUtilisateur, ?Utilisateur $nouvelUtilisateur)
+    {
+        // À toi : garder le matériel, l'ancien utilisateur et le nouvel utilisateur.
+    }
+
+    public function getMateriel(): Materiel
+    {
+        // À toi : renvoyer le matériel.
+    }
+
+    public function getAncienUtilisateur(): ?Utilisateur
+    {
+        // À toi : renvoyer l'ancien utilisateur, ou null.
+    }
+
+    public function getNouvelUtilisateur(): ?Utilisateur
+    {
+        // À toi : renvoyer le nouvel utilisateur, ou null.
+    }
+}
+```
+
+L'abonné. `EventSubscriberInterface` impose `getSubscribedEvents()` : elle rend ici un tableau vide, provisoire, que tu remplaces. Le constructeur est à toi : décide ce dont l'abonné a besoin pour écrire la ligne et connaître l'utilisateur connecté.
+
+```php
+<?php
+// src/EventSubscriber/HistoriqueAffectationSubscriber.php
+
+namespace App\EventSubscriber;
+
+use App\Event\MaterielAffecteEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+
+class HistoriqueAffectationSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        // À toi : dire quel événement ce service écoute, et quelle méthode le traite.
+
+        return []; // provisoire : à remplacer par ce que demande la consigne
+    }
+
+    public function enregistrer(MaterielAffecteEvent $evenement): void
+    {
+        // À toi : enregistrer la ligne d'historique, avec l'auteur et le moment présent.
+    }
+}
+```
+
+`MaterielController` existe déjà, avec ton code. **Ne le remplace pas.** Ses deux méthodes `nouveau()` et `modifier()` gardent leur route, mais reçoivent maintenant le répartiteur d'événements : ce bloc montre leur nouvelle signature. Garde ton code et adapte-le (la signature, puis le corps qui annonce l'événement).
+
+```php
+// à modifier dans src/Controller/MaterielController.php
+
+    // Ce qui change : reçoit maintenant le répartiteur. Garde ton code et adapte-le.
+    #[Route('/materiels/nouveau', name: 'materiel_nouveau', methods: ['GET', 'POST'])]
+    public function nouveau(Request $request, EntityManagerInterface $entityManager, RangeurDeFichiers $rangeur, EventDispatcherInterface $repartiteur): Response
+    {
+        // À toi : annoncer l'événement quand le matériel est créé déjà affecté.
+    }
+
+    // Ce qui change : reçoit maintenant le répartiteur. Garde ton code et adapte-le.
+    #[Route('/materiels/{id}/modifier', name: 'materiel_modifier', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function modifier(int $id, Request $request, MaterielRepository $materielRepository, EntityManagerInterface $entityManager, RangeurDeFichiers $rangeur, EventDispatcherInterface $repartiteur): Response
+    {
+        // À toi : annoncer l'événement seulement si l'affectation a changé.
+    }
+```
+
+La page de l'historique est une méthode **à ajouter** à la suite des autres :
+
+```php
+// à ajouter dans src/Controller/MaterielController.php
+
+    #[Route('/materiels/{id}/historique', name: 'materiel_historique', requirements: ['id' => '\d+'])]
+    public function historique(int $id, MaterielRepository $materielRepository, HistoriqueAffectationRepository $historiqueRepository): Response
+    {
+        // À toi : retrouver le matériel (page introuvable s'il est inconnu), vérifier le droit de le consulter,
+        // rendre la page de son historique.
+    }
+```
+
+N'oublie pas les `use` en haut de `MaterielController` : `App\Event\MaterielAffecteEvent`, `App\Repository\HistoriqueAffectationRepository` et `Symfony\Component\EventDispatcher\EventDispatcherInterface`. Chaque fichier se range selon PSR-4 : `src/Event/` donne `App\Event`, `src/EventSubscriber/` donne `App\EventSubscriber`, et ainsi de suite.
+
 ## Pour lancer les tests
 
 ```bash

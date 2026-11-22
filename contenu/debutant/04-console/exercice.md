@@ -21,6 +21,43 @@ Contraintes :
 
 Les fichiers CSV utilisés par les tests sont dans le dossier `tests/Exercices/Console/`. Ouvre-les : ils montrent exactement ce que ta commande doit lire.
 
+## Squelette des fichiers
+
+Voici le début de la commande : le chemin du fichier, l'espace de noms, la classe, son attribut et la forme de ses méthodes. Le squelette ne te donne pas la solution : l'argument, la description, la lecture du fichier, la validation et l'enregistrement restent à écrire. Le constructeur aussi : la démonstration en montre un, à toi de décider ce dont ta commande a besoin.
+
+```php
+<?php
+// src/Command/ImporterFournisseurCommand.php
+
+namespace App\Command;
+
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(name: 'app:fournisseur:importer')]
+class ImporterFournisseurCommand extends Command
+{
+    // À toi : le constructeur qui reçoit ce dont la commande a besoin, sans oublier celui du parent.
+
+    protected function configure(): void
+    {
+        // À toi : déclarer l'argument obligatoire « fichier ».
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        // À toi : lire le fichier, refuser les lignes invalides en les signalant avec leur numéro,
+        // enregistrer les autres, et renvoyer le bon code de retour.
+
+        return Command::SUCCESS; // provisoire : à remplacer par le code que demande la consigne
+    }
+}
+```
+
+La description de la commande manque aussi dans `#[AsCommand]` : c'est à toi de l'ajouter. Le dossier `src/Command/` donne l'espace de noms `App\Command` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

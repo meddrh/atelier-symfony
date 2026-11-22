@@ -21,6 +21,114 @@ Contraintes :
 
 Un conseil sur l'ordre : commence par `TitreLisible`, qui s'essaie dans le formulaire de création d'un ticket, puis les propriétés et la migration, et seulement ensuite la page de clôture. Essaie à la main : un titre `BUG`, un titre `IMPRIMANTE EN PANNE`, puis un titre normal.
 
+## Squelette des fichiers
+
+Ce sujet crée trois classes (la contrainte `TitreLisible`, son validateur et le type du formulaire de clôture) et ajoute des méthodes à `Ticket` et à `TicketController`. Le squelette ne te donne pas la solution : les messages, les règles, les groupes de validation et le traitement du formulaire restent à écrire. Les gabarits et la migration ne sont pas dans ce squelette : ce ne sont pas des classes PHP. La méthode de rappel qui compare les deux dates n'y est pas non plus : son nom, son attribut et ses groupes font partie de ce que tu dois trouver.
+
+La contrainte, puis son validateur, dans le même dossier `src/Validator/` donc le même espace de noms `App\Validator` : c'est ce qui permet à Symfony de retrouver le validateur par son nom.
+
+```php
+<?php
+// src/Validator/TitreLisible.php
+
+namespace App\Validator;
+
+use Symfony\Component\Validator\Constraint;
+
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
+class TitreLisible extends Constraint
+{
+    // À toi : les deux messages (le premier avec le repère {{ minimum }} pour le nombre de caractères) et la longueur minimale.
+}
+```
+
+```php
+<?php
+// src/Validator/TitreLisibleValidator.php
+
+namespace App\Validator;
+
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+
+class TitreLisibleValidator extends ConstraintValidator
+{
+    public function validate(mixed $valeur, Constraint $contrainte): void
+    {
+        // À toi : ignorer un titre vide ; sinon juger le titre sans ses espaces (trop court, tout en majuscules)
+        // et construire la violation avec le bon message.
+    }
+}
+```
+
+Le type du formulaire de clôture :
+
+```php
+<?php
+// src/Form/ClotureTicketType.php
+
+namespace App\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class ClotureTicketType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        // À toi : ajouter le champ de la résolution.
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        // À toi : dire à quelle classe ce formulaire est lié, et quelles règles de validation il applique.
+    }
+}
+```
+
+Dans `Ticket`, à côté de tes propriétés `resolution` et `resoluLe` (à déclarer toi-même, avec leur colonne) :
+
+```php
+// à ajouter dans src/Entity/Ticket.php
+
+    public function getResolution(): ?string
+    {
+        // À toi : renvoyer la résolution.
+    }
+
+    public function setResolution(?string $resolution): self
+    {
+        // À toi : enregistrer la résolution et renvoyer le ticket lui-même.
+    }
+
+    public function getResoluLe(): ?\DateTimeImmutable
+    {
+        // À toi : renvoyer la date de résolution.
+    }
+
+    public function setResoluLe(?\DateTimeImmutable $resoluLe): self
+    {
+        // À toi : enregistrer la date de résolution et renvoyer le ticket lui-même.
+    }
+```
+
+Dans `TicketController`, la page de clôture :
+
+```php
+// à ajouter dans src/Controller/TicketController.php
+
+    #[Route('/tickets/{id}/cloturer', name: 'ticket_cloturer', requirements: ['id' => '\d+'])]
+    public function cloturer(int $id, Request $request, TicketRepository $ticketRepository, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : retrouver le ticket (page introuvable s'il est inconnu), afficher le formulaire de clôture ; s'il est valide,
+        // passer le ticket à « résolu », fixer l'instant de résolution, annoncer le succès par un message flash et rediriger
+        // vers la fiche du matériel ; sinon le réafficher (code 422).
+    }
+```
+
+N'oublie pas le `use` de `App\Form\ClotureTicketType` en haut du contrôleur. Les dossiers `src/Validator/` et `src/Form/` donnent `App\Validator` et `App\Form` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

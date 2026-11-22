@@ -29,6 +29,105 @@ Deux conseils :
 - **Le transport en mémoire repart de vide à chaque requête.** Lis donc le message **juste après** la requête qui l'a posé : `static::getContainer()->get('messenger.transport.async')->getSent()`.
 - **Pour traiter un message dans un test**, ne le laisse pas dans le même noyau que la requête : redémarre un noyau (`static::ensureKernelShutdown(); static::bootKernel();`), comme le fait un `messenger:consume` qui démarre, puis donne le message au bus **marqué comme reçu** : `$bus->dispatch(new Envelope($message, [new ReceivedStamp('async')]))`. Sans ce marquage, le bus le renverrait dans la file au lieu de le traiter. Les assertions `assertEmailCount()`, `assertEmailHeaderSame()` et `assertEmailTextBodyContains()` lisent ensuite les e-mails de ce noyau.
 
+## Squelette des fichiers
+
+Ce sujet crée deux classes, le message et son gestionnaire, et modifie ou ajoute des méthodes à `TicketType`, `UtilisateurRepository` et `TicketController`. Le squelette ne te donne pas la solution : la requête, les champs du formulaire, l'envoi du message et la construction de l'e-mail restent à écrire. Le routage (`messenger.yaml`), les modèles Twig de l'e-mail et le réglage de l'expéditeur ne sont pas dans ce squelette : ce ne sont pas des classes PHP. Le champ `technicien` de `TicketType` (le corps de `buildForm()` et l'option du formulaire dans `configureOptions()`) n'a pas non plus de squelette : ces méthodes gardent leur signature, les modifier est le travail de l'exercice.
+
+Le message. Son constructeur et ses deux méthodes sont donnés par la consigne (`new TicketAffecte($ticketId, $technicienId)`) ; il ne porte que des identifiants.
+
+```php
+<?php
+// src/Message/TicketAffecte.php
+
+namespace App\Message;
+
+final class TicketAffecte
+{
+    public function __construct(int $ticketId, int $technicienId)
+    {
+        // À toi : garder les deux identifiants.
+    }
+
+    public function getTicketId(): int
+    {
+        // À toi : renvoyer l'identifiant du ticket.
+    }
+
+    public function getTechnicienId(): int
+    {
+        // À toi : renvoyer l'identifiant du technicien.
+    }
+}
+```
+
+Le gestionnaire. `#[AsMessageHandler]` le déclare auprès du bus, et sa méthode `__invoke()` reçoit le message. Le constructeur est à toi : décide ce dont le gestionnaire a besoin pour relire le ticket, construire l'adresse du lien et envoyer l'e-mail (l'expéditeur vient du paramètre `app.expediteur`).
+
+```php
+<?php
+// src/MessageHandler/TicketAffecteHandler.php
+
+namespace App\MessageHandler;
+
+use App\Message\TicketAffecte;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+
+#[AsMessageHandler]
+class TicketAffecteHandler
+{
+    public function __invoke(TicketAffecte $message): void
+    {
+        // À toi : envoyer l'e-mail au technicien, ou ne rien faire (sans erreur) si le ticket n'est plus à lui.
+    }
+}
+```
+
+Les classes que tu as déjà reçoivent des méthodes, **à ajouter** à la suite des autres. Ces blocs ne s'écrivent pas tels quels dans un nouveau fichier. Dans `UtilisateurRepository`, la requête des techniciens, que la consigne nomme :
+
+```php
+// à ajouter dans src/Repository/UtilisateurRepository.php
+
+    /**
+     * @return list<Utilisateur>
+     */
+    public function findTechniciens(): array
+    {
+        // À toi : les utilisateurs qui ont le rôle ROLE_TECHNICIEN, par ordre alphabétique de nom.
+    }
+```
+
+Dans `TicketType`, le constructeur : le formulaire a besoin de quelque chose pour proposer les techniciens.
+
+```php
+// à ajouter dans src/Form/TicketType.php
+
+    public function __construct(UtilisateurRepository $utilisateurRepository)
+    {
+        // À toi : garder ce dont le formulaire a besoin pour proposer les techniciens.
+    }
+```
+
+`TicketController` existe déjà, avec ton code. **Ne le remplace pas.** Ses méthodes `nouveau()` et `modifier()` gardent leur route, mais reçoivent maintenant le bus des messages : ce bloc montre leur nouvelle signature. Garde ton code et adapte-le (la signature, puis le corps qui poste le message).
+
+```php
+// à modifier dans src/Controller/TicketController.php
+
+    // Ce qui change : reçoit maintenant le bus des messages. Garde ton code et adapte-le.
+    #[Route('/materiels/{id}/tickets/nouveau', name: 'ticket_nouveau', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function nouveau(int $id, Request $request, MaterielRepository $materielRepository, EntityManagerInterface $entityManager, RangeurDeFichiers $rangeur, MessageBusInterface $bus): Response
+    {
+        // À toi : poster le message quand le ticket est créé avec un technicien.
+    }
+
+    // Ce qui change : reçoit maintenant le bus des messages. Garde ton code et adapte-le.
+    #[Route('/tickets/{id}/modifier', name: 'ticket_modifier', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function modifier(int $id, Request $request, TicketRepository $ticketRepository, EntityManagerInterface $entityManager, RangeurDeFichiers $rangeur, MessageBusInterface $bus): Response
+    {
+        // À toi : poster le message après l'enregistrement, seulement si le technicien a changé et qu'il y en a un.
+    }
+```
+
+N'oublie pas les `use` : `App\Repository\UtilisateurRepository` en haut de `TicketType`, `App\Message\TicketAffecte` et `Symfony\Component\Messenger\MessageBusInterface` en haut de `TicketController`, `App\Entity\Utilisateur` en haut de `UtilisateurRepository`. Le dossier `src/Message/` donne l'espace de noms `App\Message`, `src/MessageHandler/` donne `App\MessageHandler` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

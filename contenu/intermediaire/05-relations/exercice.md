@@ -27,6 +27,118 @@ Contraintes :
 
 Un conseil sur l'ordre : commence par l'entité et la migration, vérifie la table avec `doctrine:query:sql`, puis écris la page de création, puis seulement l'affichage et la suppression.
 
+## Squelette des fichiers
+
+Ce sujet crée quatre classes (l'entité `Ticket`, son dépôt, son type de formulaire et son contrôleur) et ajoute une méthode à `Materiel`. Le squelette ne te donne pas la solution : les colonnes, les règles de validation, la relation, le traitement du formulaire et les messages restent à écrire. Les gabarits et la migration ne sont pas dans ce squelette : ce ne sont pas des classes PHP.
+
+L'entité ne montre que son attribut de classe et son identifiant. Tu ajoutes toi-même les colonnes (`titre`, `description`, `statut`, `creeLe`, `materiel`), leurs règles de validation et les méthodes d'accès, à la main ou avec `php bin/console make:entity`.
+
+```php
+<?php
+// src/Entity/Ticket.php
+
+namespace App\Entity;
+
+use App\Repository\TicketRepository;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: TicketRepository::class)]
+class Ticket
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
+
+    // À toi : les colonnes, leurs règles de validation, puis les méthodes d'accès.
+}
+```
+
+```php
+<?php
+// src/Repository/TicketRepository.php
+
+namespace App\Repository;
+
+use App\Entity\Ticket;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+
+/**
+ * @extends ServiceEntityRepository<Ticket>
+ */
+class TicketRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        // À toi : appeler le constructeur du parent, en lui donnant le gestionnaire et la classe de l'entité.
+    }
+}
+```
+
+```php
+<?php
+// src/Form/TicketType.php
+
+namespace App\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+class TicketType extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        // À toi : ajouter les champs titre et description.
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        // À toi : dire à quelle classe ce formulaire est lié.
+    }
+}
+```
+
+```php
+<?php
+// src/Controller/TicketController.php
+
+namespace App\Controller;
+
+use App\Repository\MaterielRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class TicketController extends AbstractController
+{
+    #[Route('/materiels/{id}/tickets/nouveau', name: 'ticket_nouveau', requirements: ['id' => '\d+'])]
+    public function nouveau(int $id, Request $request, MaterielRepository $materielRepository, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : retrouver le matériel (page introuvable s'il est inconnu), afficher le formulaire de création d'un ticket lié
+        // à ce matériel ; s'il est valide, enregistrer, annoncer le succès par un message flash et rediriger vers la fiche
+        // du matériel ; sinon le réafficher (code 422).
+    }
+}
+```
+
+Enfin, `Materiel` existe déjà : la méthode ci-dessous est à **ajouter** dans ta classe, avec la propriété qui porte la relation (le côté inverse, que tu déclares toi-même) et les `use` qu'il faut, dont `Doctrine\Common\Collections\Collection`.
+
+```php
+// à ajouter dans src/Entity/Materiel.php
+
+    /** @return Collection<int, Ticket> */
+    public function getTickets(): Collection
+    {
+        // À toi : renvoyer les tickets de ce matériel, du plus récent au plus ancien.
+    }
+```
+
+Chaque fichier se range selon PSR-4 : `src/Entity/` donne `App\Entity`, `src/Form/` donne `App\Form`, et ainsi de suite.
+
 ## Pour lancer les tests
 
 ```bash

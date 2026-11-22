@@ -22,6 +22,40 @@ Contraintes :
 - les deux pages **héritent** du gabarit `base.html.twig`, comme celles du matériel ;
 - tes pages du matériel doivent continuer à fonctionner : le premier test les vérifie.
 
+## Squelette des fichiers
+
+Voici le début du contrôleur : le chemin du fichier, l'espace de noms, la classe et la forme de chaque méthode. Il ne te donne pas la solution : le corps des méthodes, la vérification de l'identifiant et la page introuvable restent à écrire. Les gabarits Twig ne sont pas dans ce squelette : ce ne sont pas des classes PHP, tu les crées toi-même.
+
+```php
+<?php
+// src/Controller/FournisseurController.php
+
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+class FournisseurController extends AbstractController
+{
+    #[Route('/fournisseurs')]
+    public function liste(): Response
+    {
+        // À toi : donner la liste des fournisseurs au gabarit et rendre la page.
+    }
+
+    #[Route('/fournisseurs/{id}')]
+    public function fiche(int $id): Response
+    {
+        // À toi : retrouver le fournisseur, rendre sa fiche, ou la page introuvable.
+    }
+}
+```
+
+Le dossier de ce fichier (`src/Controller/`) donne l'espace de noms (`App\Controller`), et le nom du fichier donne le nom de la classe : c'est la règle PSR-4 que Symfony utilise pour retrouver tes classes.
+
+Tant qu'un corps de méthode est vide, la page correspondante répond par une erreur 500 (« Return value must be of type …Response, none returned ») : c'est normal, la méthode promet une `Response` qu'elle ne rend pas encore. L'erreur disparaît dès que tu écris le corps.
+
 ## Pour lancer les tests
 
 Dans un terminal, à la racine du projet :

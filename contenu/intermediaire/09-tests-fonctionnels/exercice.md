@@ -23,6 +23,33 @@ Contraintes :
 
 Un conseil sur l'ordre : écris un test, **vois-le vert**, puis casse à la main ce qu'il est censé protéger et **vois-le rouge**, avant d'écrire le suivant. Les défauts qui échappent à un test sont presque toujours des choses que le test **n'a pas regardées** : un effet en base, un texte à l'écran, un cas où une autre ligne ne devait pas être touchée.
 
+## Squelette des fichiers
+
+Ici, la classe que tu crées est une **classe de test** : elle se range sous `tests/`, et non sous `src/`. Le dossier `tests/` répond à l'espace de noms `App\Tests\` (c'est écrit dans `composer.json`), comme `src/` répond à `App\` : `tests/Junior/TicketTest.php` donne donc `App\Tests\Junior`.
+
+Le squelette donne la classe, son parent et le trait de la démonstration. Il ne contient aucun test : les méthodes de test (leur nom commence par `test`), leurs vérifications et la phrase « ce test devient rouge si… » sont ton travail.
+
+```php
+<?php
+// tests/Junior/TicketTest.php
+
+namespace App\Tests\Junior;
+
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+class TicketTest extends WebTestCase
+{
+    use AvecBaseVierge;
+
+    protected function setUp(): void
+    {
+        // À toi : démarrer le client de test, puis la base vierge, puis enregistrer un matériel.
+    }
+
+    // À toi : au moins quatre tests (la liste, une création valide, un titre vide, le filtre de statut).
+}
+```
+
 ## Pour lancer les tests
 
 ```bash

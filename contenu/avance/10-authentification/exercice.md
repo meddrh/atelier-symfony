@@ -39,6 +39,136 @@ Contraintes :
 
 Un conseil sur l'ordre : commence par la hiérarchie et les règles d'accès, que tu peux essayer tout de suite avec une connexion par formulaire (donne-toi le rôle voulu avec `doctrine:query:sql "UPDATE utilisateur SET roles = '[\"ROLE_ADMIN\"]' WHERE email = '…'"`). Pour le flux, essaie avec `curl -i -H "X-Jeton: …" http://localhost:8000/flux/mes-tickets` : sans jeton, avec un faux, avec le bon. Si `/flux` sans jeton ne répond pas en JSON, cherche qui doit répondre à un visiteur **anonyme** : c'est le rôle d'un **point d'entrée** (`AuthenticationEntryPointInterface`, option `entry_point`).
 
+## Squelette des fichiers
+
+Ce sujet crée trois classes : la page « Mon compte », le flux JSON et l'authentificateur par jeton. Il ajoute aussi des méthodes à deux classes que tu as déjà : `Utilisateur` et `TicketRepository`. Le squelette ne te donne pas la solution : ce que contiennent les pages, la requête, la lecture de l'en-tête et les réponses restent à écrire. Il n'y a rien pour `security.yaml` (la hiérarchie, les règles, le pare-feu), pour les gabarits, les catalogues de traduction ni la migration : ce ne sont pas des classes PHP, tu les écris toi-même. La propriété `jetonApi` et sa colonne `jeton_api` aussi : tu les déclares toi-même, à côté de tes autres colonnes.
+
+La page « Mon compte » :
+
+```php
+<?php
+// src/Controller/CompteController.php
+
+namespace App\Controller;
+
+use App\Entity\Utilisateur;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+
+class CompteController extends AbstractController
+{
+    #[Route('/mon-compte', name: 'compte')]
+    public function compte(#[CurrentUser] Utilisateur $utilisateur): Response
+    {
+        // À toi : rendre la page avec l'utilisateur connecté.
+    }
+}
+```
+
+Le flux JSON :
+
+```php
+<?php
+// src/Controller/FluxController.php
+
+namespace App\Controller;
+
+use App\Entity\Utilisateur;
+use App\Repository\TicketRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+
+class FluxController extends AbstractController
+{
+    #[Route('/flux/mes-tickets', name: 'flux_mes_tickets', methods: ['GET'])]
+    public function mesTickets(#[CurrentUser] Utilisateur $utilisateur, TicketRepository $ticketRepository): JsonResponse
+    {
+        // À toi : répondre avec les tickets ouverts de l'utilisateur, dans la forme exacte de la consigne.
+    }
+}
+```
+
+L'authentificateur. Il étend la classe de base des authentificateurs et joue aussi le rôle de point d'entrée : les cinq méthodes ci-dessous sont **imposées** par ces deux contrats, avec exactement ces signatures. Ce qu'elles font, c'est à toi de l'écrire, et le constructeur aussi : à toi de décider ce dont l'authentificateur a besoin pour retrouver l'utilisateur.
+
+```php
+<?php
+// src/Security/AuthentificateurParJeton.php
+
+namespace App\Security;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
+use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
+
+class AuthentificateurParJeton extends AbstractAuthenticator implements AuthenticationEntryPointInterface
+{
+    public function supports(Request $request): ?bool
+    {
+        // À toi : dire si cet authentificateur doit s'occuper de la requête.
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        // À toi : retrouver l'utilisateur que désigne le jeton, ou refuser.
+    }
+
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
+    {
+        // À toi : décider quoi répondre quand le jeton est bon.
+    }
+
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
+    {
+        // À toi : répondre au jeton refusé, avec le message exact de la consigne.
+    }
+
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {
+        // À toi : répondre à un visiteur qui se présente sans jeton, avec le message exact de la consigne.
+    }
+}
+```
+
+Les deux classes que tu as déjà reçoivent des méthodes, **à ajouter** à la suite des autres. Ces blocs ne s'écrivent pas tels quels dans un nouveau fichier. Dans `Utilisateur`, à côté de ta propriété `jetonApi` :
+
+```php
+// à ajouter dans src/Entity/Utilisateur.php
+
+    public function getJetonApi(): ?string
+    {
+        // À toi : renvoyer le jeton, ou null s'il n'y en a pas.
+    }
+
+    public function setJetonApi(?string $jetonApi): self
+    {
+        // À toi : enregistrer le jeton et renvoyer l'utilisateur lui-même.
+    }
+```
+
+Dans `TicketRepository`, la requête du flux. Son nom est libre : les tests ne l'appellent pas directement, ils passent par le flux.
+
+```php
+// à ajouter dans src/Repository/TicketRepository.php
+
+    /**
+     * @return list<Ticket>
+     */
+    public function findOuvertsDe(Utilisateur $utilisateur): array
+    {
+        // À toi : les tickets ouverts des matériels affectés à cet utilisateur, du plus récent au plus ancien.
+    }
+```
+
+N'oublie pas le `use App\Entity\Utilisateur;` en haut de `TicketRepository`. Le dossier `src/Security/` donne l'espace de noms `App\Security` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

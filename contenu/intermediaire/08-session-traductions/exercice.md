@@ -30,6 +30,42 @@ Contraintes :
 
 Un conseil sur l'ordre : écris d'abord les phrases des deux catalogues et essaie-les dans la page, puis la route, puis le filtre. Pour tester ton filtre à la main, tape `?statut=pirate` dans l'adresse, puis `?statut[]=x`.
 
+## Squelette des fichiers
+
+Ce sujet ne crée aucune classe : il ajoute deux pages à `TicketController` et une méthode à `TicketRepository`, qui existent déjà. Le squelette ne donne que ces méthodes **à ajouter** ; la liste des filtres permis, la session, la requête et les messages sont à toi. Les gabarits et les catalogues de traduction ne sont pas dans ce squelette : ce ne sont pas des classes PHP.
+
+```php
+// à ajouter dans src/Controller/TicketController.php
+
+    #[Route('/tickets', name: 'ticket_liste_sans_langue')]
+    public function listeSansLangue(): Response
+    {
+        // À toi : rediriger vers la liste en français.
+    }
+
+    #[Route('/{_locale}/tickets', name: 'ticket_liste')]
+    public function liste(Request $request, TicketRepository $ticketRepository): Response
+    {
+        // À toi : déterminer le filtre de statut (adresse, session ou défaut), le mémoriser, puis rendre la liste des tickets.
+    }
+```
+
+N'oublie pas les `use` en haut du fichier si ton contrôleur ne les a pas déjà : `App\Repository\TicketRepository`, `Symfony\Component\HttpFoundation\Request` et `Symfony\Component\HttpFoundation\Response`. Ces routes sont incomplètes : les langues permises et la méthode `GET` font partie de la consigne.
+
+Dans `TicketRepository`, la requête (le nom `findParStatut` est celui du corrigé ; les tests passent par les pages, pas par ce nom) :
+
+```php
+// à ajouter dans src/Repository/TicketRepository.php
+
+    /**
+     * @return list<Ticket>
+     */
+    public function findParStatut(string $filtre): array
+    {
+        // À toi : les tickets du statut demandé (tous pour « tous »), du plus récent au plus ancien.
+    }
+```
+
 ## Pour lancer les tests
 
 ```bash

@@ -27,6 +27,53 @@ Deux conseils :
 - **Le 304 économise le transfert, pas le calcul.** Pour savoir si le fichier a changé, il faut le générer : tu assumes ce coût pour ne pas renvoyer des mégaoctets déjà reçus. Une étiquette « bon marché » (un nombre de lignes, une dernière date) serait fausse dès qu'un nom change : un 304 périmé est pire qu'un téléchargement de trop.
 - **Chaque échec est un cas.** Une réponse 500 et un délai dépassé ne lèvent pas la même chose : l'une est une réponse, l'autre une exception du client. Lis la documentation de `ExceptionInterface` et de `getStatusCode()` pour savoir lequel se produit quand.
 
+## Squelette des fichiers
+
+Ce sujet crée une classe, la commande d'archivage, et modifie une méthode de `HistoriqueController`. Le squelette ne te donne pas la solution : le CSV envoyé, les messages selon la réponse de l'API, le contrôle d'un seul archivage à la fois et le calcul de l'ETag restent à écrire. La configuration des clients et du verrou existe déjà (démonstrations) et il n'y a pas de gabarit : rien d'autre n'est à créer.
+
+La commande. `#[AsCommand]` lui donne son nom ; la description est à toi. Le constructeur aussi : la consigne nomme ce dont elle a besoin (le service d'export, le client limité, un moyen de ne lancer qu'un archivage à la fois), à toi de décider comment le recevoir, sans oublier le constructeur du parent.
+
+```php
+<?php
+// src/Command/ArchiverHistoriqueCommand.php
+
+namespace App\Command;
+
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+#[AsCommand(name: 'app:historique:archiver')]
+class ArchiverHistoriqueCommand extends Command
+{
+    // À toi : le constructeur qui reçoit ce dont la commande a besoin, sans oublier celui du parent.
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        // À toi : fabriquer le CSV de l'historique, l'envoyer à l'API d'archivage et répondre selon ce que celle-ci rend ;
+        // un second lancement simultané est refusé (la consigne dit comment le reconnaître et quoi afficher).
+
+        return Command::SUCCESS; // provisoire : à remplacer par le code que demande la consigne
+    }
+}
+```
+
+`HistoriqueController` existe déjà, avec ton code du sujet 13. **Ne le remplace pas.** Sa méthode `export()` garde sa route, mais reçoit maintenant la requête (pour lire `If-None-Match`) : ce bloc montre sa nouvelle signature. Garde ton code et adapte-le (la signature, puis le corps qui calcule l'empreinte et répond 304).
+
+```php
+// à modifier dans src/Controller/HistoriqueController.php
+
+    // Ce qui change : reçoit maintenant la requête. Garde ton code et adapte-le.
+    #[Route('/historique/export.csv', name: 'historique_export', methods: ['GET'])]
+    public function export(Request $requete, ExportHistoriqueInterface $export, HistoriqueAffectationRepository $historiqueRepository): Response
+    {
+        // À toi : calculer l'empreinte du contenu, la donner en ETag, répondre 304 sans corps si le navigateur la connaît déjà.
+    }
+```
+
+N'oublie pas le `use Symfony\Component\HttpFoundation\Request;` en haut de `HistoriqueController`. Le dossier `src/Command/` donne l'espace de noms `App\Command` : c'est la règle PSR-4.
+
 ## Pour lancer les tests
 
 ```bash

@@ -18,7 +18,7 @@ Tu sais décider d'un droit sur un **objet** (les matériels) et écrire une rè
 4. **Le compte désactivé.** Une classe `App\Security\CompteActifVoter` répond **« non »** à **toute** question d'un utilisateur dont `isActif()` est faux, et **s'abstient** sinon.
    - Elle ne dit jamais « oui ».
    - Elle laisse passer l'attribut `PUBLIC_ACCESS` (la page de connexion reste ouverte).
-   - Indice : elle ne regarde ni l'action ni l'objet. Si tu étends la classe de base `Voter`, tu devras déclarer `supports()` : la démonstration, partie 3, montre l'interface plus directe, avec une seule méthode.
+   - Indice : elle ne regarde ni l'action ni l'objet. Elle n'a donc pas besoin de la classe de base `Voter` (et de son `supports()`) : elle implémente directement `VoterInterface`, avec sa seule méthode `vote()`, comme dans la démonstration, partie 3 (voir le squelette plus bas).
    - Attention : tous les utilisateurs ne sont pas des `Utilisateur`. Le lecteur d'inventaire de la démonstration 10-3 est un utilisateur en mémoire, sans méthode `isActif()` : vérifie le type (`instanceof Utilisateur`) avant d'appeler `isActif()`, sinon `/inventaire` plante.
 5. **La stratégie de décision.** Dans `config/packages/security.yaml`, la clé `access_decision_manager` : un seul « non » doit l'emporter (stratégie **`unanimous`**).
    - Vérifie toi-même, **avant de cliquer sur « Terminé »**, que le test du compte désactivé **échoue** quand tu remets la stratégie par défaut (`affirmative`), puis remets `unanimous`.
@@ -31,6 +31,111 @@ Contraintes :
 - un conseil : lance aussi tes tests du sujet 10 et ceux du début de ce sujet (`tests/Junior` compris), pour voir tout de suite si un changement les casse.
 
 Un conseil sur l'ordre : commence par les deux champs et la migration, puis `TicketVoter` avec ses refus en `GET`, ensuite les boutons. Garde le compte désactivé pour la fin : tant que la stratégie n'est pas changée, le test qui le concerne reste rouge, c'est normal.
+
+## Squelette des fichiers
+
+Ce sujet crée deux classes, les deux contrôles de droits, et ajoute des méthodes à `Ticket`, `Utilisateur` et `TicketController`. Le squelette ne te donne pas la solution : qui a le droit de quoi, la suppression et le choix du refus restent à écrire. Les contrôleurs `MaterielController`, `FournisseurController` et les méthodes `modifier()`, `cloturer()` et `nouveau()` de `TicketController` ne changent pas de signature : ils gagnent seulement des appels à `denyAccessUnlessGranted()`, c'est le travail de l'exercice et il n'y a pas de squelette pour cela. Il n'y en a pas non plus pour les propriétés `technicien` et `actif` (à déclarer toi-même, avec leur colonne), la migration, `security.yaml` ni les gabarits : ce ne sont pas des méthodes à ajouter, ou pas des classes PHP.
+
+Le contrôle des droits sur les tickets. La classe de base `Voter` impose deux méthodes, **protégées** : leurs signatures sont exactes, sinon la classe ne compile pas. Les deux actions sont des constantes, pour que le contrôleur n'écrive pas deux fois le même texte.
+
+```php
+<?php
+// src/Security/TicketVoter.php
+
+namespace App\Security;
+
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\Voter;
+use Symfony\Component\Security\Core\Security;
+
+class TicketVoter extends Voter
+{
+    public const MODIFIER = 'MODIFIER';
+    public const SUPPRIMER = 'SUPPRIMER';
+
+    public function __construct(Security $security)
+    {
+        // À toi : garder le service qui sait si un rôle est accordé.
+    }
+
+    protected function supports(string $attribute, mixed $subject): bool
+    {
+        // À toi : dire si cette classe s'occupe de la question (quelle action, sur quel objet).
+    }
+
+    protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
+    {
+        // À toi : répondre pour MODIFIER et pour SUPPRIMER, selon les règles de la consigne.
+    }
+}
+```
+
+Le contrôle du compte désactivé. Il implémente l'interface `VoterInterface` : sa seule méthode est imposée, avec cette signature.
+
+```php
+<?php
+// src/Security/CompteActifVoter.php
+
+namespace App\Security;
+
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
+
+class CompteActifVoter implements VoterInterface
+{
+    public function vote(TokenInterface $token, mixed $subject, array $attributes): int
+    {
+        // À toi : répondre « non » à un compte désactivé, s'abstenir sinon (et laisser passer PUBLIC_ACCESS).
+    }
+}
+```
+
+Les classes que tu as déjà reçoivent des méthodes, **à ajouter** à la suite des autres. Ces blocs ne s'écrivent pas tels quels dans un nouveau fichier. Dans `Ticket`, à côté de ta propriété `technicien` :
+
+```php
+// à ajouter dans src/Entity/Ticket.php
+
+    public function getTechnicien(): ?Utilisateur
+    {
+        // À toi : renvoyer le technicien chargé du ticket, ou null.
+    }
+
+    public function setTechnicien(?Utilisateur $technicien): self
+    {
+        // À toi : enregistrer le technicien et renvoyer le ticket lui-même.
+    }
+```
+
+Dans `Utilisateur`, à côté de ta propriété `actif` :
+
+```php
+// à ajouter dans src/Entity/Utilisateur.php
+
+    public function isActif(): bool
+    {
+        // À toi : dire si le compte est actif.
+    }
+
+    public function setActif(bool $actif): self
+    {
+        // À toi : enregistrer l'état du compte et renvoyer l'utilisateur lui-même.
+    }
+```
+
+Dans `TicketController`, la nouvelle action de suppression :
+
+```php
+// à ajouter dans src/Controller/TicketController.php
+
+    #[Route('/tickets/{id}/supprimer', name: 'ticket_supprimer', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function supprimer(int $id, Request $request, TicketRepository $ticketRepository, EntityManagerInterface $entityManager): Response
+    {
+        // À toi : retrouver le ticket (page introuvable s'il est inconnu), contrôler le droit AVANT le jeton CSRF,
+        // supprimer, annoncer le résultat par un message flash et revenir à la fiche du matériel.
+    }
+```
+
+N'oublie pas le `use App\Security\TicketVoter;` en haut de `TicketController`. Le dossier `src/Security/` donne l'espace de noms `App\Security` : c'est la règle PSR-4.
 
 ## Pour lancer les tests
 
